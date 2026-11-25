@@ -2,8 +2,11 @@ from smeconnect.communication.message_bus import InMemoryMessageBus
 from smeconnect.communication.message_schema import AgentMessage, Performative
 from smeconnect.environment.marketplace import build_agents
 from smeconnect.graphs.seller_graph import build_seller_graph
+from smeconnect.graphs.retailer_graph import build_retailer_graph
+
 
 def run_one_offer():
+    """Phase 01: a one-way proposal followed by a seller decision."""
     agents = build_agents()
     seller = agents[0]
     bus = InMemoryMessageBus()
@@ -23,3 +26,33 @@ def run_one_offer():
         "decision": "",
     })
     return {"agents": agents, "messages": bus.history, "decision": result["decision"]}
+
+
+def run_retailer_offer(
+    offered_price: float = 165.0,
+    requested_quantity: int = 200,
+    target_price: float = 150.0,
+    expected_retail_price: float = 200.0,
+    retailer_id: str = "R1",
+):
+    """Phase 02/Step 1: independent retailer evaluation, NOT yet a dialogue.
+
+    The quoted offer is an external scenario input, not a message from the seller.
+    """
+    agents = build_agents()
+    retailer = next(a for a in agents if a.agent_id == retailer_id and a.role == "retailer")
+    state = {
+        "budget": retailer.budget,
+        "demand": retailer.demand,
+        "maximum_price": retailer.maximum_price,
+        "target_price": target_price,
+        "expected_retail_price": expected_retail_price,
+        "offered_price": offered_price,
+        "requested_quantity": requested_quantity,
+        "purchase_cost": 0.0,
+        "expected_gross_profit": 0.0,
+        "counter_price": None,
+        "decision": "",
+        "reason": "",
+    }
+    return {"retailer": retailer, "result": build_retailer_graph().invoke(state)}
