@@ -1,0 +1,1 @@
+"""SMEConnect AI package."""
