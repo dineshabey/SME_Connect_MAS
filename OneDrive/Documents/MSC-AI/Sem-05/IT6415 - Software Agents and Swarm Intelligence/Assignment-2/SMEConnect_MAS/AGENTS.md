@@ -25,7 +25,7 @@ The project is a **simulation / academic prototype**, not an autonomous commerce
 | `tests/` | Deterministic unit/integration tests |
 | `docs/` | Architecture and academic documentation |
 
-Existing design: seller and retailer each have a decision workflow; the message bus supports send/receive. **A full bidirectional negotiation protocol, delivery workflow, end-to-end transactions and experimental validation are not implemented yet.** Check the actual files before relying on this status.
+Existing design: seller and retailer each have a decision workflow; the message bus supports send/receive. **Bounded two-way negotiation and Phase 03 retailer supplier selection are implemented in code; delivery workflow, end-to-end transactions and experimental validation are not implemented yet.** Check the actual files before relying on this status.
 
 ## 3. Rules for human developers and coding assistants
 
