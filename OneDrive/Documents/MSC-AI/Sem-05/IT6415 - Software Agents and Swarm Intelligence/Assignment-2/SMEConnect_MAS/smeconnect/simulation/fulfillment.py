@@ -79,10 +79,12 @@ def run_delivery_coordination(competition: dict, ledger: ReservationLedger, *,
         return finish("DEMAND_EXHAUSTED", "Retailer demand is already allocated.")
 
     # The delivery agent receives a request and runs its own decision graph.
-    send(coordinator_id, delivery_id, Performative.CFP, "delivery_trip", 1, 0.0)
-    bus.receive(delivery_id)
+    send(coordinator_id, delivery_id, Performative.CFP, "delivery_capacity_packets", quantity, 0.0)
+    delivery_requests = bus.receive(delivery_id)
+    if len(delivery_requests) != 1 or delivery_requests[0].performative != Performative.CFP:
+        raise RuntimeError("Delivery agent received an invalid request.")
     delivery_state = build_delivery_graph().invoke({
-        "requested_quantity": quantity,
+        "requested_quantity": delivery_requests[0].quantity,
         "remaining_capacity": ledger.delivery_capacity[delivery_id],
         "cost_per_trip": delivery.cost_per_trip,
         "decision": "", "quoted_fee": None, "reason": "",
