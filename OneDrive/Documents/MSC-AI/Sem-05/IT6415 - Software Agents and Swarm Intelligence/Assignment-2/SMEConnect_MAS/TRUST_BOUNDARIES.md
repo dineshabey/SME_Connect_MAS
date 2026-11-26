@@ -96,6 +96,10 @@ These are **security requirements for follow-up implementation**. The current `A
 - No hidden background workflows, autonomous deployment or monitoring; describe what actually ran.
 - Prefer reproducible, audited deterministic behaviour over unnecessary model/API complexity.
 
+## STRIDE threat assessment
+
+See [STRIDE Threat Model](docs/STRIDE_THREAT_MODEL.md) for the six STRIDE categories, risk-ranked threat table, affected trust boundaries, proposed mitigations and adversarial test plan. This is a design-time assessment, not a verified security certification.
+
 ## 7. Runtime abuse and failure scenarios
 
 | Scenario | Required safe behaviour |
