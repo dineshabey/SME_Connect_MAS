@@ -133,16 +133,11 @@ with tab_tour:
     )
     with st.expander("ℹ️ Learn the MAS terms before starting", expanded=False):
         st.markdown(
-            "**Agent:** A software participant with its own goal and decision rules.  
-"
-            "**PROPOSE:** Offer a unit price.  
-"
-            "**COUNTER-OFFER:** Respond with a different price (encoded as another PROPOSE).  
-"
-            "**ACCEPT-PROPOSAL:** Agree on the offered price.  
-"
-            "**REJECT-PROPOSAL:** Refuse the offer.  
-"
+            "**Agent:** A software participant with its own goal and decision rules.\n\n"
+            "**PROPOSE:** Offer a unit price.\n\n"
+            "**COUNTER-OFFER:** Respond with a different price (encoded as another PROPOSE).\n\n"
+            "**ACCEPT-PROPOSAL:** Agree on the offered price.\n\n"
+            "**REJECT-PROPOSAL:** Refuse the offer.\n\n"
             "**One round:** Seller evaluation plus possible retailer response. One round can contain several messages."
         )
     agents = {a.agent_id: a for a in build_agents()}
