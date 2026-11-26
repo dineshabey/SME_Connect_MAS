@@ -45,7 +45,7 @@ def run_negotiation(*, seller_id: str = "S1", retailer_id: str = "R1",
         offer = inbox[0]
         s = seller_graph.invoke({"minimum_price": seller.minimum_price,
             "target_price": seller.target_price, "stock": seller.available_stock,
-            "offered_price": offer.unit_price, "requested_quantity": offer.quantity,
+            "strategy": seller.strategy, "offered_price": offer.unit_price, "requested_quantity": offer.quantity,
             "decision": ""})
         if s["decision"] == "REJECT":
             emit(seller_id, retailer_id, Performative.REJECT, offer.unit_price,
