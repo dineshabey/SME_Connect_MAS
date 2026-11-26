@@ -7,6 +7,7 @@ import streamlit as st
 from smeconnect.environment.marketplace import build_agents
 from smeconnect.simulation.engine import run_one_offer, run_retailer_offer
 from smeconnect.simulation.negotiation import run_negotiation
+from dashboard.negotiation_viz import neon_scene
 
 st.set_page_config(page_title="SMEConnect AI | MAS Learning Lab", page_icon="🤝", layout="wide")
 st.markdown(
@@ -87,34 +88,9 @@ def event_explanation(event):
             "Negotiation + Independent decisions")
 
 def event_visual(timeline, index, buyer, seller):
-    event = timeline[index]
-    title, meaning, feature = event_explanation(event)
-    from_buyer = event["sender"] == buyer
-    direction = "forward" if from_buyer else "backward"
-    chips = "".join(
-        f'<span class="step {"current" if i == index else ""}">'
-        f'{i+1}. {safe(e["sender"])}: {safe(e["performative"])}</span>'
-        for i, e in enumerate(timeline)
-    )
-    return f"""<div class="diagram">
-      <div class="network">
-        <div class="actor"><div class="emoji">🛒</div><strong>Retailer {safe(buyer)}</strong>
-          <small>Goal: buy profitably</small></div>
-        <div class="signal"><b>{safe(event["performative"])} · Rs. {event["price"]:,.2f}</b>
-          <div class="rail"><span class="dot {direction}"></span></div>
-          <small>{safe(event["sender"])} → {safe(event["receiver"])}</small>
-        </div>
-        <div class="actor seller"><div class="emoji">🏪</div><strong>Seller {safe(seller)}</strong>
-          <small>Goal: sell profitably</small></div>
-      </div>
-      <div class="explainer"><strong>Message {index+1} of {len(timeline)} · Round {safe(event["round"])}
-        — {safe(title)}</strong><br>{safe(meaning)}
-        <div style="margin-top:6px;color:#a3dae0"><strong>Agent decision reason:</strong>
-        {safe(event["reason"])}</div>
-        <div style="margin-top:5px"><strong>MAS concept:</strong> {safe(feature)}</div>
-      </div>
-      <div class="steps">{chips}</div>
-    </div>"""
+    """The visual is driven by recorded messages from the negotiation engine."""
+    return neon_scene(timeline, index, buyer, seller)
+
 
 def set_step(index, count):
     st.session_state["walk_step"] = min(max(index, 0), count - 1)
@@ -179,8 +155,8 @@ with tab_tour:
     else:
         timeline = outcome["timeline"]
         current = min(st.session_state.get("walk_step", 0), len(timeline)-1)
-        st.markdown("### STEP 2 · Watch the agents communicate")
-        st.caption("The simulation has run. Use Previous / Next to understand the exact messages it produced.")
+        st.markdown("### STEP 2 · Watch the agents communicate and think")
+        st.caption("Neon robot view: the glowing 'Thinking' panels explain which implemented decision rules apply at this event. They are not private AI thoughts. Use Previous / Next or Replay to follow the actual recorded messages.")
         st.progress((current+1)/len(timeline), text=f"Message {current+1} of {len(timeline)}")
         view = st.empty()
         view.markdown(event_visual(
