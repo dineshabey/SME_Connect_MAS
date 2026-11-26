@@ -9,6 +9,7 @@ from smeconnect.simulation.engine import run_one_offer, run_retailer_offer
 from smeconnect.simulation.negotiation import run_negotiation
 from dashboard.negotiation_viz import neon_scene
 from dashboard.competition_viz import render_competition
+from dashboard.marketplace_viz import render_marketplace
 
 st.set_page_config(page_title="SMEConnect AI | MAS Learning Lab", page_icon="🤝", layout="wide")
 st.markdown(
@@ -96,10 +97,12 @@ def event_visual(timeline, index, buyer, seller):
 def set_step(index, count):
     st.session_state["walk_step"] = min(max(index, 0), count - 1)
 
-tab_competition, tab_tour, tab_seller, tab_retailer = st.tabs(
-    ["🏆 Phase 03 · Supplier Competition", "🎓 Guided Negotiation",
-     "🏪 Seller Decision Lab", "🛒 Retailer Decision Lab"]
+tab_marketplace, tab_competition, tab_tour, tab_seller, tab_retailer = st.tabs(
+    ["🏬 Marketplace", "🏆 Phase 03 · Supplier Competition",
+     "🎓 Guided Negotiation", "🏪 Seller Decision Lab", "🛒 Retailer Decision Lab"]
 )
+with tab_marketplace:
+    render_marketplace()
 with tab_competition:
     render_competition()
 with tab_tour:
