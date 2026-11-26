@@ -102,3 +102,13 @@ The **Phase 03 · Supplier Competition** tab demonstrates one retailer negotiati
 **Run:** `python -m streamlit run dashboard/app.py`, then open the first tab. **Test:** `python -m pytest -q`.
 
 All business data are synthetic. Negotiations run sequentially as separate conversations, not as a concurrent distributed marketplace. A supplier choice is a provisional price agreement; it does not reserve stock, charge money or schedule delivery.
+
+### Phase 03.1 — Seller Marketplace
+
+Open the first **Marketplace** tab to browse synthetic seller listings (S1 Rs.175; S2 Rs.165 per 100g packet), search by seller/product, inspect advertised stock, select sellers, and start real in-memory agent negotiations. The results distinguish the public asking price from the separately negotiated provisional price. Private seller minimum and target prices are not exposed in public listings.
+
+`python -m py_compile dashboard/app.py dashboard/marketplace_viz.py smeconnect/environment/catalogue.py`
+`python -m pytest -q`
+`python -m streamlit run dashboard/app.py`
+
+The catalogue supports only `roasted_peanuts_100g` in this phase; no real transactions, product inventory reservations or delivery scheduling take place.
