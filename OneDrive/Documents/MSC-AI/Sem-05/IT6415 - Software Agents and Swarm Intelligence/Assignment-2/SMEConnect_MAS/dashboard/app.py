@@ -218,12 +218,9 @@ with tab_tour:
         st.info("Negotiation only: **no payment, inventory update, delivery booking or real sale**.")
         st.markdown("### STEP 4 · Explain the MAS evidence")
         st.markdown(
-            "**Communication:** Messages have a sender, receiver, and performative.  
-"
-            "**Autonomy:** Each LangGraph agent evaluates offers with its own constraints.  
-"
-            "**Negotiation:** Offers can be accepted, rejected, or counter-proposed.  
-"
+            "**Communication:** Messages have a sender, receiver, and performative.\n\n"
+            "**Autonomy:** Each LangGraph agent evaluates offers with its own constraints.\n\n"
+            "**Negotiation:** Offers can be accepted, rejected, or counter-proposed.\n\n"
             "**Bounded interaction:** The process stops on an outcome or a round limit."
         )
         with st.expander("🔍 Professor / developer view — actual message timeline and raw JSON"):
