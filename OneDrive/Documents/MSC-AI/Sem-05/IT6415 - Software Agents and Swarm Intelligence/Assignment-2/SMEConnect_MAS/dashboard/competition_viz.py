@@ -40,12 +40,14 @@ def render_competition():
         bg="#103d52" if not selected else "#095d57"
         border="#2e99bf" if not selected else "#38efc5"
         glow="box-shadow:0 0 20px #00d8bb55;" if selected else ""
+        badge = ('<div style="color:#baffeb;font-size:12px;margin-top:8px">'
+                 '✓ Selected supplier</div>') if selected else ''
         return (f'<div style="background:{bg};border:1px solid {border};{glow}border-radius:16px;'
                 f'padding:20px 12px;text-align:center;color:white;min-height:133px">'
                 f'<div style="font-size:34px">{title}</div><b>{html.escape(agent_id)}</b>'
                 f'<div style="font-size:12px;color:#c9e6f1">{html.escape(detail)}</div>'
-                f'{"<div style=\"color:#baffeb;font-size:12px;margin-top:8px\">✓ Selected supplier</div>" if selected else ""}'
-                f'</div>')
+                f'{badge}</div>')
+
     st.markdown("### Step 2 · See the competing agent network")
     with st.container(border=True):
         s1,buyer,s2=st.columns([1,1.2,1])
