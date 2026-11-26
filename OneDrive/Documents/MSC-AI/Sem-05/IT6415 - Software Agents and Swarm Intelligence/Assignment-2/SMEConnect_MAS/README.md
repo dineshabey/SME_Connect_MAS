@@ -112,3 +112,9 @@ Open the first **Marketplace** tab to browse synthetic seller listings (S1 Rs.17
 `python -m streamlit run dashboard/app.py`
 
 The catalogue supports only `roasted_peanuts_100g` in this phase; no real transactions, product inventory reservations or delivery scheduling take place.
+
+### Phase 04 — Simulated Delivery Coordination
+
+New tab **🚚 Phase 04 · Delivery Coordination**: select Retailer R1/R2, negotiate suppliers, let Delivery D1 quote trip capacity/fee, independently validate retailer finances and reserve session-scoped synthetic stock/budget/demand/capacity. You can run multiple attempts to see how reservations reduce available resources, or reset the session ledger. Failed coordination does not mutate any resources. Phase 04 is a simulated booking, **not** real delivery, payment or shipped order.
+
+For the architecture, limitations and commands see [architecture notes](docs/architecture.md).
