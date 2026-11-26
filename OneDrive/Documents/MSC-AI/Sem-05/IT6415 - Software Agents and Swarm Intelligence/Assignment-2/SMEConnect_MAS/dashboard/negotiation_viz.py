@@ -224,3 +224,4 @@ def neon_scene(timeline: list[dict], index: int, buyer: str, seller: str) -> str
   </div>
   <div class="neon-pills">{steps}</div>
 </div>
+"""
