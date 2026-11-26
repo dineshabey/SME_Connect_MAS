@@ -61,6 +61,38 @@ def render_delivery_coordination() -> None:
     outcome = result["coordination"]
     selected = outcome["selected_seller_id"]
     st.markdown("### Step 2 · Follow the four-agent coordination")
+    st.markdown(
+        """
+        <style>
+        .delivery-lane{background:linear-gradient(120deg,#101d38,#153e55);border:1px solid #3589a8;
+          border-radius:18px;padding:19px 13px;margin:12px 0;color:#effaff}
+        .delivery-nodes{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;
+          align-items:center;gap:8px}
+        .delivery-node{border:1px solid #397fa4;background:#193a57;padding:14px 7px;border-radius:14px;
+          text-align:center;box-shadow:inset 0 0 16px #188bea24}
+        .delivery-node .symbol{font-size:29px;display:block;margin-bottom:5px}
+        .delivery-node b{font-size:12px;display:block}
+        .delivery-node small{font-size:10px;color:#a8d9ea}
+        .delivery-arrow{font-size:23px;color:#64e4ff;text-shadow:0 0 12px #4bdbff;
+          animation:delivery-beat 1.5s ease-in-out infinite}
+        @keyframes delivery-beat{50%{opacity:.3;transform:translateX(3px)}}
+        @media(max-width:650px){.delivery-nodes{grid-template-columns:1fr;gap:4px}
+          .delivery-arrow{text-align:center;transform:rotate(90deg)}}
+        @media(prefers-reduced-motion:reduce){.delivery-arrow{animation:none}}
+        </style>
+        <div class="delivery-lane"><div class="delivery-nodes">
+          <div class="delivery-node"><span class="symbol">🛒</span><b>Retailer</b><small>Check full budget</small></div>
+          <div class="delivery-arrow">➜</div>
+          <div class="delivery-node"><span class="symbol">🏪</span><b>Seller</b><small>Validate stock</small></div>
+          <div class="delivery-arrow">➜</div>
+          <div class="delivery-node"><span class="symbol">🚚</span><b>Delivery D1</b><small>Capacity + trip fee</small></div>
+          <div class="delivery-arrow">➜</div>
+          <div class="delivery-node"><span class="symbol">🧭</span><b>Coordinator</b><small>All-or-none reserve</small></div>
+        </div></div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     stages = [
         ("🛒 Retailer", "Negotiate & select"),
         ("🏪 Seller", "Confirm available stock"),
