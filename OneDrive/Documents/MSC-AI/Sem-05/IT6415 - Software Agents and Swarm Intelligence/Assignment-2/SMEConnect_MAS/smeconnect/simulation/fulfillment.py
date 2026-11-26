@@ -71,12 +71,14 @@ def run_delivery_coordination(competition: dict, ledger: ReservationLedger, *,
         raise ValueError("Delivery Agent is not registered.")
     delivery = agents[delivery_id]
     record(coordinator_id, "VERIFY", f"Selected {seller_id} at Rs.{price:,.2f} for {quantity} packets.")
-    if ledger.seller_stock[seller_id] < quantity:
-        record(coordinator_id, "STOP", "Seller's remaining stock is insufficient.")
-        return finish("STOCK_UNAVAILABLE", "Not enough unreserved seller stock.")
+    # Demand is checked first so repeated bookings report the exhausted buyer
+    # allocation before other simultaneously exhausted resources.
     if ledger.retailer_demand[retailer.agent_id] < quantity:
         record(coordinator_id, "STOP", "Retailer has insufficient remaining demand.")
         return finish("DEMAND_EXHAUSTED", "Retailer demand is already allocated.")
+    if ledger.seller_stock[seller_id] < quantity:
+        record(coordinator_id, "STOP", "Seller's remaining stock is insufficient.")
+        return finish("STOCK_UNAVAILABLE", "Not enough unreserved seller stock.")
 
     # The delivery agent receives a request and runs its own decision graph.
     send(coordinator_id, delivery_id, Performative.CFP, "delivery_capacity_packets", quantity, 0.0)
