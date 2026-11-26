@@ -83,3 +83,21 @@ Public example asking prices: S1 Rs.175 and S2 Rs.165 per 100g packet. These are
 `dashboard/marketplace_viz.py` provides a Marketplace tab with seller cards, search, public prices, stock display, retailer and seller selection, and a **Discover & negotiate** action. The action filters sellers with insufficient advertised stock and invokes the existing `run_supplier_competition()`, then compares public asking prices against recorded negotiated prices and shows the actual agent messages.
 
 **Scope limit:** one synthetic product is currently wired to the negotiation message schema. This is a demo catalogue, not a live SME database or production inventory. Public asking prices are currently fixed scenario values. The catalogue does not place orders, reserve inventory, deduct budgets or check delivery capacity; those require Phase 04.
+
+## Phase 04 — Multi-agent delivery coordination and simulated resource reservation
+
+The **Delivery Coordination** tab builds on Phase 03 negotiation and supplier selection. It selects one provisional negotiated supplier, checks the seller's remaining stock, and sends a FIPA-inspired `CFP` to **Delivery Agent D1**. D1 has an independent `delivery_graph.py` LangGraph decision workflow: it checks remaining capacity and quotes a synthetic trip fee (Rs.1,000 for D1). The **Retailer Agent** then executes `retailer_order_graph.py` to approve or reject the negotiated purchase **including delivery cost**.
+
+If the seller has stock, delivery capacity is available, the retailer has enough demand and budget, and expected margin after delivery is positive, the Coordinator asks `ReservationLedger.reserve()` to allocate **seller stock, retailer budget, retailer demand and delivery capacity together**. Every constraint is validated before the ledger mutates, preventing partial allocations or double-booking inside one sequential simulation session. The result is `RESERVED_SIMULATED`, not delivered, paid, or dispatched.
+
+**Example scenario (R1, 200 packets):** Seller S2 may agree to Rs.150/packet, creating Rs.30,000 purchase cost. D1 quotes Rs.1,000, so R1 approves Rs.31,000 total against its Rs.35,000 budget and expects Rs.9,000 margin after delivery under the simulated Rs.200 resale assumption. The ledger reserves 200 packets of S2 stock and D1 capacity, 200 packets of R1 demand, and Rs.31,000 of budget.
+
+**Transparency and limits:** Message traffic is recorded in an in-memory typed bus; private seller reservation prices are not sent to other agents. The orchestrator records separate non-message decision events with reasons. All values are synthetic, the delivery quote is a simple per-trip cost, and the order ledger is scoped to the current Streamlit session. It is sequential only—**not** an ACID database or a concurrent-safe transaction manager. There is no actual payment, shipment, delivery routing, seller fulfillment, network outreach, or persistent inventory update.
+
+**Verify locally:**
+
+```powershell
+python -m py_compile dashboard/app.py dashboard/delivery_viz.py smeconnect/simulation/fulfillment.py smeconnect/simulation/reservation_ledger.py smeconnect/graphs/delivery_graph.py smeconnect/graphs/retailer_order_graph.py
+python -m pytest -q
+python -m streamlit run dashboard/app.py
+```
