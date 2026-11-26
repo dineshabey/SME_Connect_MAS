@@ -79,7 +79,7 @@ The target system demonstrates:
 
 ## Implementation status
 
-This repository currently contains a **starter prototype**, not a completed or experimentally validated multi-agent marketplace. The initial seller decision workflow, message structures and project scaffolding are the starting point. Full multi-round negotiation, integrated delivery coordination, dynamic-market experiments and evaluated emergent behaviours remain development goals.
+This repository currently contains a **starter prototype**, not a completed or experimentally validated multi-agent marketplace. The seller and retailer have separate LangGraph decision workflows, a bounded two-way negotiation protocol is implemented, and Phase 03 adds independent seller discovery, competing negotiations and a retailer-owned supplier-selection StateGraph. Integrated delivery coordination, atomic inventory/budget reservations, dynamic-market experiments and evaluated emergent behaviours remain development goals.
 
 The market data and business scenarios are **synthetic examples**, not real commercial transactions.
 
@@ -94,3 +94,11 @@ The market data and business scenarios are **synthetic examples**, not real comm
 ## License
 
 No license has been specified for this project.
+
+## Phase 03 — Supplier competition
+
+The **Phase 03 · Supplier Competition** tab demonstrates one retailer negotiating with two sellers independently. Seller S1 pursues margin; Seller S2 uses a simulated volume-based bulk-offer strategy. Each seller executes its own LangGraph decision process. The retailer compares only recorded public agreements, rejects infeasible options, and selects the offer with the greatest expected gross profit using a separate StateGraph.
+
+**Run:** `python -m streamlit run dashboard/app.py`, then open the first tab. **Test:** `python -m pytest -q`.
+
+All business data are synthetic. Negotiations run sequentially as separate conversations, not as a concurrent distributed marketplace. A supplier choice is a provisional price agreement; it does not reserve stock, charge money or schedule delivery.
