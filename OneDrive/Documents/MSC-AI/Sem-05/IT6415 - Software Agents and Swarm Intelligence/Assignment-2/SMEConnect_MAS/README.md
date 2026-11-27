@@ -140,7 +140,7 @@ Open **🧪 Phase 05.2 · Experiments** to run reproducible, bounded paired comp
 - **Updated agent evidence:** [docs/agent_characteristics.md](docs/agent_characteristics.md).
 - **Executable measured-results export:** `python -m smeconnect.simulation.export_evidence --out-dir evaluation_output`.
 
-Before submitting the report, run the entire test suite and evidence exporter in your own environment, verify the measured `evaluation_output/RESULTS_FOR_REPORT.md` table, and insert those findings into Section 6 of the report. Generated CSV/JSON/Markdown are *synthetic simulation evidence*, not externally verified market data. The export includes the Git revision and Python/package version metadata when available.
+Before submitting, run the entire test suite and evidence exporter in your own environment. The exporter creates `evaluation_output/FINAL_REPORT_WITH_RESULTS.md` by inserting actual computed results into a copy of the report template, alongside `RESULTS_FOR_REPORT.md`, `phase05_trials.csv`, and `phase05_summary.json`. Review the generated report and confirm the test output, provenance and university formatting before submitting. Generated CSV/JSON/Markdown are *synthetic simulation evidence*, not externally verified market data. The export includes the Git revision and Python/package version metadata when available.
 
 ```powershell
 git pull origin main
