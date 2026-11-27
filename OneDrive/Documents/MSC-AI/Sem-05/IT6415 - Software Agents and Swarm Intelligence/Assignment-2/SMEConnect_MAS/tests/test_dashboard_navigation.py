@@ -12,7 +12,7 @@ PROJECT = Path(__file__).resolve().parents[1]
 
 
 def test_all_workspaces_have_distinct_navigation_names_and_descriptions():
-    assert len(PAGES) == 11
+    assert len(PAGES) == 12
     assert len(set(PAGES)) == len(PAGES)
     assert set(PAGE_METADATA) == set(PAGES)
     assert all(len(title) > 5 and len(description) > 25
@@ -213,3 +213,105 @@ def test_workflow_scene_escapes_untrusted_values():
     assert "<script>" not in scene
     assert "<img src=x>" not in scene
     assert "&lt;script&gt;" in scene
+
+
+def test_animated_sequence_is_routed_and_uses_real_workflow_data():
+    src = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    app = (PROJECT / "dashboard" / "app.py").read_text(encoding="utf-8")
+    theme = (PROJECT / "dashboard" / "ui_design.py").read_text(encoding="utf-8")
+    ast.parse(src)
+    assert '"🔀 Sequence Replay"' in theme
+    assert "if selected_page == PAGES[11]:" in app
+    assert "render_sequence_replay()" in app
+    for item in (
+        "def _sequence_events(", "def _sequence_html(", "_run_session(",
+        'components.html(', 'msg.performative.value', 'msg.sender', 'msg.receiver',
+        'st.form_submit_button(', 'Play', 'Pause', 'Show final result',
+    ):
+        assert item in src
+
+
+def test_sequence_trace_is_grounded_in_validated_messages():
+    from dashboard.sequence_replay import _sequence_events
+
+    class Dummy:
+        def __init__(self, sender, receiver, action, price=150.0, quantity=200):
+            self.sender, self.receiver, self.unit_price, self.quantity = (
+                sender, receiver, price, quantity)
+            self.performative = type("P", (), {"value": action})()
+
+    run = {
+        "competition": {
+            "retailer": type("Buyer", (), {"agent_id": "R1"})(),
+            "discovered_seller_ids": ["S1"],
+            "evaluated_seller_ids": ["S1"],
+            "negotiations": {"S1": {
+                "timeline": [{"sender": "R1", "receiver": "S1",
+                              "performative": "PROPOSE", "reason": "Submitted.",
+                              "round": 1}],
+                "messages": [Dummy("R1", "S1", "PROPOSE")],
+            }},
+            "selection": {"selected_seller_id": "S1",
+                          "reasoning": "Highest feasible profit."},
+        },
+        "coordination": {
+            "events": [
+                {"actor": "C1", "action": "CFP",
+                 "explanation": "C1 → D1 delivery request"},
+                {"actor": "D1", "action": "THINK",
+                 "explanation": "Checked capacity."},
+                {"actor": "D1", "action": "PROPOSE",
+                 "explanation": "D1 → C1 delivery quote"},
+            ],
+            "messages": [Dummy("C1", "D1", "CFP", 0.0),
+                         Dummy("D1", "C1", "PROPOSE", 1000.0, 1)],
+            "status": "RESERVED_SIMULATED",
+            "reason": "Simulated allocation.",
+        },
+    }
+    events = _sequence_events(run)
+    assert [e["kind"] for e in events] == [
+        "decision", "message", "decision", "message",
+        "decision", "message", "decision",
+    ]
+    assert events[3]["sender"] == "C1"
+    assert events[3]["receiver"] == "D1"
+    assert events[5]["sender"] == "D1"
+    assert events[5]["receiver"] == "C1"
+    assert events[4]["kind"] == "decision"
+    assert events[-1]["action"] == "RESERVED_SIMULATED"
+
+
+def test_sequence_rejects_mismatched_recorded_messages():
+    import pytest
+    from dashboard.sequence_replay import _sequence_events
+
+    run = {
+        "competition": {
+            "retailer": type("Buyer", (), {"agent_id": "R1"})(),
+            "discovered_seller_ids": ["S1"],
+            "evaluated_seller_ids": ["S1"],
+            "negotiations": {"S1": {"timeline": [{"sender": "R1"}], "messages": []}},
+        },
+        "coordination": {},
+    }
+    with pytest.raises(ValueError, match="counts differ"):
+        _sequence_events(run)
+
+
+def test_sequence_html_escapes_untrusted_script_payloads():
+    from dashboard.sequence_replay import _sequence_html
+
+    event = {"sender": "R1", "receiver": "S1", "kind": "message",
+             "action": "PROPOSE", "phase": "Negotiation",
+             "label": "</script><script>alert(1)</script>",
+             "description": "<img src=x onerror=alert(1)>"}
+    html = _sequence_html([event], ["R1", "S1"], {
+        "status": "STOP", "seller": "None",
+        "price": "-", "delivery": "-", "total": "-", "reason": "Ended.",
+    })
+    assert "</script><script>alert(1)</script>" not in html
+    assert "<img src=x onerror=alert(1)>" not in html
+    assert "\\u003c" in html
+    assert "document.createElementNS" in html
+    assert "clearInterval" in html
