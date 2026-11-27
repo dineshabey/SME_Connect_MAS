@@ -19,7 +19,7 @@ st.set_page_config(page_title="SMEConnect AI | MAS Learning Lab", page_icon="ðŸ¤
 st.markdown(
     """
     <style>
-    .block-container{max-width:1120px;padding-top:1.7rem;padding-bottom:3rem}
+    .block-container{max-width:100% !important;width:100% !important;padding:1.4rem clamp(1rem,2.3vw,3rem) 3rem !important}
     .hero{background:linear-gradient(110deg,#142b42,#136b73);border:1px solid #328a93;
       padding:23px 26px;border-radius:17px;color:#f5fafc;margin-bottom:14px}
     .hero h2{font-size:1.8rem;color:white;margin:0 0 7px}
