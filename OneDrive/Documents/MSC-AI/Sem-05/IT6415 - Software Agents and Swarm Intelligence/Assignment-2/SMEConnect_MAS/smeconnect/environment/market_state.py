@@ -4,6 +4,7 @@ These are scenario assumptions, not observations of real agricultural markets.
 Private seller price constraints stay inside their SellerAgent state.
 """
 from dataclasses import dataclass, field
+from types import MappingProxyType
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,10 @@ class MarketSnapshot:
                    or isinstance(delta, bool) or not -50 <= delta <= 100
                    for agent_id, delta in mapping.items()):
                 raise ValueError("Invalid seller price adjustment.")
+        # Freeze each mapping too; a frozen dataclass alone would not protect dict values.
+        for key in ("seller_stock", "retailer_demand",
+                    "seller_minimum_adjustment", "seller_target_adjustment"):
+            object.__setattr__(self, key, MappingProxyType(dict(getattr(self, key))))
 
 SCENARIO_NAMES = {
     "normal": "Normal Market",
