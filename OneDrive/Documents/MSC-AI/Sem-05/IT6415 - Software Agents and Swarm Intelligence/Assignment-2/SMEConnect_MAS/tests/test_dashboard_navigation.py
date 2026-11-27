@@ -358,3 +358,14 @@ def test_sequence_final_explanation_uses_actual_reservation_values():
     assert "Rs.155.00" in final["description"]
     assert "Rs.1,000.00" in final["description"]
     assert "Rs.19,600.00" in final["description"]
+
+
+def test_sequence_technical_evidence_uses_large_escaped_tables():
+    from dashboard.sequence_replay import _large_evidence_table
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert "def _large_evidence_table(" in source
+    assert "escape(str(row.get(c" in source
+    assert "font-size:20px!important" in source
+    assert "font-size:19px!important" in source
+    assert 'st.dataframe(result["sequence_events"]' not in source
