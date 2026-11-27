@@ -2,7 +2,7 @@
 
 **Module:** IT6415 – Software Agents and Swarm Intelligence  
 **Programme:** MSc in Artificial Intelligence  
-**Document status:** Submission draft grounded in implemented repository (Phases 01–05.2); replace the results placeholders with verified local experiment outputs before submission.  
+**Document status:** Submission template for implemented Phases 01–05.3; generate a results-filled copy with the evidence exporter, then check tests, citations, and university submission requirements.  
 **Study type:** Reproducible synthetic simulation, not a field trial or an AI model-training study.  
 **Project repository:** [SME_Connect_MAS](https://github.com/dineshabey/SME_Connect_MAS)
 
@@ -12,7 +12,7 @@ Small and medium enterprises (SMEs) often face difficulties when finding appropr
 
 The prototype supports two seller strategies, two retailers, supplier discovery, bilateral proposal/counterproposal exchanges, retailer-led utility-based supplier selection and simulated stock–budget–delivery reservations. Controlled market snapshots allow experiments with seller stock shortages, input-price pressure and changes in retailer demand. A reproducible paired factorial evaluation measures supplier switching, selection success, negotiated prices, expected gross profit, negotiation rounds and message volume.
 
-**Results disclosure:** Numerical aggregate findings are intentionally not included here until the Phase 05.2 evaluation is executed on the user's local machine. The repository contains the evaluation runner and an evidence-export tool to generate report-ready results. The contribution is a transparent **rule-based MAS prototype**, not a live commerce platform, an online-learning agent or evidence of emergent self-organization.
+**Results disclosure:** The evaluation runner generates measured synthetic results from 18 paired trials. This source template intentionally retains a replaceable results section; the exported `FINAL_REPORT_WITH_RESULTS.md` contains the locally executed measurements. This is not evidence about real SMEs. The contribution is a transparent **rule-based MAS prototype**, not a live commerce platform, an online-learning agent or evidence of emergent self-organization.
 
 **Keywords:** Multi-Agent Systems, LangGraph, autonomous agents, negotiation, resource coordination, SME marketplace, synthetic market simulation, adaptation.
 
@@ -240,8 +240,8 @@ Possible future work includes multiple products, more competing retailers and de
 
 - [ ] Record Git revision and package versions used for the evaluation
 - [ ] Save `pytest` output showing the actual result
-- [ ] Run the 18-pair experiment grid and preserve CSV/JSON evidence
-- [ ] Insert the generated measured-results table into Section 6
+- [ ] Preserve the 18-pair generated CSV/JSON evidence with the final submission
+- [ ] Verify the generated `FINAL_REPORT_WITH_RESULTS.md` matches its CSV and JSON outputs
 - [ ] Capture screenshots of supplier competition, delivery reservation, market shock, evaluation dashboard
 - [ ] Confirm all figures are labeled *synthetic simulation*
 - [ ] Confirm no private seller pricing appears in public export
