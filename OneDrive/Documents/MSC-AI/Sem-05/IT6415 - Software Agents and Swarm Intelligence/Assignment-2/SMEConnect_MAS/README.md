@@ -232,3 +232,24 @@ python -m streamlit run dashboard/app.py
 ```
 
 During the viva, run the negotiation in step 05 before the selection/delivery stages; use the controls in steps 07 and 08 to demonstrate a successful reservation followed by a rejected duplicate attempt. Browser and complete pytest verification still need to be completed locally.
+
+### Interactive Workflow Simulator — visual end-to-end MAS replay
+
+Open **⚡ Workflow Simulator** under **PRESENTATION** in the Streamlit sidebar.
+
+1. Choose Retailer **R1 or R2**, one or both Sellers **S1/S2**, a requested quantity within that retailer's demand, opening unit price, target price, negotiation rounds, assumed resale price and playback speed.
+2. Review the synthetic retailer and public seller cards (only public seller asking prices and stock are shown).
+3. Click **Run complete MAS workflow**. The actual existing seller/retailer LangGraph negotiations, retailer-owned supplier choice and D1/C1 synthetic delivery/resource coordination execute **once in a fresh, isolated session ledger**.
+4. Watch the generated trace, including supplier discovery, each genuine bilateral negotiation message (with the existing animated neon visual), supplier selection, delivery/coordination events, and the final status. Use **Previous**, **Next event**, **Play to final outcome** or **Replay from start**. Replaying never re-executes transactions.
+5. Inspect the final decision, negotiated price, delivery quote, reservation outcome, pre/post simulated resource values and actual typed messages in Technical Evidence.
+
+**Correctness constraints:** The discovery and supplier-choice visuals are clearly marked as summaries of computed results, *not* invented wire messages. THINK logs are described as rule evaluation, not hidden LLM reasoning. No live payments, dispatch, inventory changes, concurrent multi-process execution or external writes occur. Changing configuration after a run triggers an on-screen rerun warning.
+
+```powershell
+git pull origin main
+python -m py_compile dashboard/workflow_simulator.py dashboard/app.py dashboard/ui_design.py
+python -m pytest -q
+python -m streamlit run dashboard/app.py
+```
+
+The automated test checks structural routing, sequential trace composition and HTML escaping. Visual and full runtime verification still require launching Streamlit locally.
