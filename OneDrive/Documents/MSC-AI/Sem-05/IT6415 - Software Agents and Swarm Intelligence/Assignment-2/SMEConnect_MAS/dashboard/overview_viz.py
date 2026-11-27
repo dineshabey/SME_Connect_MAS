@@ -24,14 +24,14 @@ def _agent_network():
         """
         <style>
         .mas-network{border-radius:16px;background:linear-gradient(125deg,#11243d,#12384a);
-            padding:20px 16px;color:#e8f3ff;border:1px solid #3b7188;margin:8px 0 16px}
+            padding:28px 22px;color:#e8f3ff;border:1px solid #3b7188;margin:8px 0 16px}
         .mas-network .net-row{display:flex;gap:10px;align-items:center;justify-content:center;
-            flex-wrap:wrap;margin:6px 0}
+            flex-wrap:wrap;margin:12px 0}
         .mas-network .net-node{border:1px solid #518da8;background:#1c4561;border-radius:12px;
-            padding:12px 14px;text-align:center;min-width:128px;color:#f5fafc;font-weight:700}
-        .mas-network .net-node small{display:block;font-weight:400;font-size:11px;color:#c9e1ec}
-        .mas-network .net-line{font-size:22px;color:#71d5e5;text-align:center}
-        .mas-network .net-note{text-align:center;color:#c3dbe6;font-size:12px;margin-top:8px}
+            padding:19px 24px;text-align:center;min-width:175px;color:#f5fafc;font-size:1.12rem;font-weight:700}
+        .mas-network .net-node small{display:block;font-weight:400;font-size:0.88rem;color:#c9e1ec}
+        .mas-network .net-line{font-size:1.3rem;color:#71d5e5;text-align:center}
+        .mas-network .net-note{text-align:center;color:#c3dbe6;font-size:0.92rem;margin-top:14px}
         </style>
         <div class="mas-network">
           <div class="net-row">
