@@ -80,10 +80,24 @@ def _sequence_events(run: dict) -> list[dict]:
     if msg_index != len(messages):
         raise ValueError("Some validated delivery messages were not matched to events.")
 
+    # The final explanation includes only recorded reservation evidence.
+    reservation = coordination.get("reservation")
+    final_description = coordination["reason"]
+    if reservation is not None:
+        final_description = (
+            f"Coordinator C1 reserved {reservation['quantity']} packets from "
+            f"{reservation['seller_id']} for {reservation['retailer_id']} "
+            f"at Rs.{reservation['unit_price']:,.2f} per packet. "
+            f"The delivery fee was Rs.{reservation['delivery_fee']:,.2f}, "
+            f"making the total simulated commitment Rs.{reservation['reserved_total']:,.2f}. "
+            "The reservation ledger allocated seller stock, retailer demand, "
+            "buyer budget and delivery capacity together. "
+            "No real payment or shipment occurred."
+        )
     result.append({
         "phase": "Final result", "kind": "decision", "sender": "C1",
         "receiver": "", "action": coordination["status"],
-        "description": coordination["reason"],
+        "description": final_description,
         "label": "Final · " + coordination["status"],
     })
     return result
@@ -103,37 +117,43 @@ def _sequence_html(events: list[dict], actors: list[str], summary: dict,
 <style>
 :root{color-scheme:dark;--ink:#eaf6fc;--muted:#acc5d6;--teal:#69ebd8;--line:#4d7490}
 *{box-sizing:border-box}
-body{margin:0;background:#0e1a2c;color:var(--ink);font:18px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+body{margin:0;background:#0e1a2c;color:var(--ink);font:21px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
 .shell{background:linear-gradient(140deg,#11243b,#12364b);border:1px solid #3c7591;border-radius:20px;padding:20px;min-height:840px}
 .top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
-h1{margin:0;font-size:28px;letter-spacing:-.02em}
-.sub{color:#c7dce8;font-size:17px}
-.legend{display:flex;gap:16px;flex-wrap:wrap;color:#b9d6e3;font-size:15px;padding:12px 0}
+h1{margin:0;font-size:36px;letter-spacing:-.02em}
+.sub{color:#c7dce8;font-size:22px}
+.legend{display:flex;gap:20px;flex-wrap:wrap;color:#b9d6e3;font-size:19px;padding:16px 0}
 .legend b{color:#80edd7}
 .controls{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 14px}
 button{border:1px solid #4d89a0;background:#1b4259;color:#eefaff;padding:12px 19px;border-radius:12px;
-cursor:pointer;font:700 18px system-ui;min-height:48px}
+cursor:pointer;font:750 21px system-ui;min-height:58px}
 button.primary{background:#1b746f;border-color:#74dcd2}
 button:disabled{opacity:.4;cursor:not-allowed}
 button:focus-visible{outline:3px solid #d6fff0;outline-offset:2px}
-.counter{font-size:18px;color:#aef9e9;font-weight:800;margin:3px 0}
+.counter{font-size:23px;color:#aef9e9;font-weight:800;margin:3px 0}
 .diagram{height:488px;overflow:auto;border:1px solid #44687f;border-radius:16px;background:
 radial-gradient(circle at 50% 20%,#163a54,#0d1e34);scroll-behavior:smooth}
 svg{display:block;width:100%;min-width:720px}
-.detail{display:grid;grid-template-columns:1fr 1.2fr;gap:14px;margin-top:16px}
-.panel{padding:18px 21px;border:1px solid #42758a;background:#16334b;border-radius:15px;min-height:145px}
-.panel h2{font-size:22px;margin:0 0 10px}
-.panel p{margin:4px 0;font-size:19px}
-.kicker{font-size:14px;color:#82e7d8;font-weight:800;letter-spacing:.08em}
+.detail{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.45fr);gap:18px;margin-top:20px;align-items:stretch}
+.panel{padding:27px 29px;border:2px solid #4b8ca4;background:linear-gradient(145deg,#183a55,#1a4760);border-radius:18px;min-height:245px}
+.panel h2{font-size:29px;margin:7px 0 14px;line-height:1.35}
+.panel p{margin:9px 0;font-size:24px;line-height:1.65;color:#f0f9ff}
+.kicker{font-size:19px;color:#96ffdf;font-weight:850;letter-spacing:.08em}
+#decision-panel{border-color:#64d8c7;background:linear-gradient(145deg,#153c49,#205263);
+box-shadow:0 10px 26px #06182777}
+#reason{font-size:26px!important;font-weight:650;line-height:1.65;color:#fff}
+.explain-extra{border-top:1px solid #4d8795;margin-top:18px;padding-top:16px}
+.explain-extra strong{font-size:19px;color:#a0f6e6}
+#impact{font-size:22px!important;color:#e0f2f4;line-height:1.6}
 .final{margin-top:14px;padding:18px 21px;border:1px solid #5dbaaa;border-radius:15px;
 background:linear-gradient(110deg,#174f4d,#173c52)}
-.final h2{margin:0 0 10px;font-size:26px}
+.final h2{margin:0 0 10px;font-size:31px}
 .stats{display:flex;gap:18px;flex-wrap:wrap}
 .stat{min-width:150px;flex:1;padding:10px;background:#ffffff10;border-radius:10px}
-.stat span{display:block;color:#c6e2ec;font-size:16px}.stat b{display:block;font-size:21px}
-.small{font-size:14px;color:#b8cddd}
+.stat span{display:block;color:#c6e2ec;font-size:20px}.stat b{display:block;font-size:30px}
+.small{font-size:18px!important;color:#c3dce7!important;line-height:1.5!important}
 @media(max-width:850px){.detail{grid-template-columns:1fr}.shell{padding:13px}h1{font-size:22px}
-.diagram{height:450px}button{font-size:16px;padding:10px 13px}.panel p{font-size:17px}}
+.diagram{height:450px}button{font-size:18px;padding:10px 13px}.panel p{font-size:20px}.panel h2{font-size:24px}}
 @media(prefers-reduced-motion:reduce){.diagram{scroll-behavior:auto}}
 </style></head>
 <body><main class="shell">
@@ -151,8 +171,10 @@ background:linear-gradient(110deg,#174f4d,#173c52)}
 <div class="detail">
 <section class="panel"><div class="kicker">CURRENT EVENT</div><h2 id="title"></h2>
 <p id="message"></p><p id="round"></p></section>
-<section class="panel"><div class="kicker">DECISION EXPLANATION</div><h2>Why did it happen?</h2>
-<p id="reason"></p><p class="small" id="provenance"></p></section>
+<section class="panel" id="decision-panel" aria-live="polite">
+<div class="kicker">AGENT DECISION EXPLAINED</div><h2 id="why-title">Why did it happen?</h2>
+<p id="reason"></p><div class="explain-extra"><strong id="impact-label">What happened next?</strong>
+<p id="impact"></p></div><p class="small" id="provenance"></p></section>
 </div><section id="final" class="final" hidden></section></main>
 <script>
 const model=__DATA__;
@@ -222,7 +244,33 @@ function show(){
    ? `${item.sender} → ${item.receiver}${item.price!==undefined?" · Rs."+Number(item.price).toFixed(2):""}`
    : `${item.sender} performed an internal decision`;
  document.getElementById("round").textContent=item.round?("Negotiation round "+item.round+" · Quantity "+item.quantity):"";
- document.getElementById("reason").textContent=item.description;
+ document.getElementById("reason").textContent=item.description || "No rule explanation was recorded for this event.";
+ const impact={
+   DISCOVER:"The discovered sellers become eligible for separate retailer negotiations.",
+   SELECT:"The retailer's selected agreement is passed to the delivery coordination stage.",
+   NO_SELECTION:"No feasible negotiated supplier was found, so delivery cannot proceed.",
+   VERIFY:"The coordinator checks the selected agreement against the recorded negotiation.",
+   THINK:"The agent evaluates its own configured constraints. This is a recorded rule outcome, not private LLM reasoning.",
+   CFP:"The delivery agent receives the coordinator's request and evaluates capacity.",
+   PROPOSE:"The receiving agent evaluates this proposal using its own decision policy.",
+   "ACCEPT-PROPOSAL":"This proposal has been accepted under the current agent's constraints.",
+   REJECT:"The proposed action is rejected under the active constraints.",
+   "REJECT-PROPOSAL":"The proposal has been rejected under the active constraints.",
+   RESERVED:"The session-only ledger allocated all required resources together.",
+   RESERVED_SIMULATED:"The synthetic order was reserved; no real payment, shipment or external inventory update occurred.",
+   NO_AGREEMENT:"The requested order cannot advance to a successful reservation without an agreement.",
+   DEMAND_EXHAUSTED:"The retailer's remaining demand is insufficient for another allocation.",
+   STOCK_UNAVAILABLE:"The seller's available unreserved stock is insufficient.",
+   DELIVERY_UNAVAILABLE:"The delivery agent cannot fulfill the requested simulated capacity.",
+   RETAILER_DECLINED:"The retailer did not approve the total commitment.",
+   RESERVATION_FAILED:"A resource validation failed, so the ledger did not create the requested reservation."
+ };
+ const label=item.action==="INFORM"?"The receiving agent gets the recorded information."
+   :impact[item.action]||"The next recorded event determines how the workflow continues.";
+ document.getElementById("impact").textContent=label;
+ document.getElementById("why-title").textContent=item.kind==="message"
+   ?"Why did "+item.sender+" send this message?"
+   :"Why did "+item.sender+" make this decision?";
  document.getElementById("provenance").textContent=item.kind==="message"
     ?"Validated message from recorded simulation trace.":"Internal event derived from a recorded decision log; not a transmitted message.";
  document.getElementById("previous").disabled=index===0;
