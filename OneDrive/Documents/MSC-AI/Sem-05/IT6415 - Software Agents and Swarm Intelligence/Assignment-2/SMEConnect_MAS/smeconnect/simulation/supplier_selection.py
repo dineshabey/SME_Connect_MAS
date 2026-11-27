@@ -3,6 +3,7 @@
 No physical stock/budget reservations or real payments are made.
 """
 from smeconnect.environment.marketplace import build_agents
+from smeconnect.environment.market_state import MarketSnapshot
 from smeconnect.graphs.supplier_selection_graph import build_supplier_selection_graph
 from smeconnect.simulation.negotiation import run_negotiation
 
@@ -11,9 +12,9 @@ def run_supplier_competition(
     *, retailer_id: str = "R1", seller_ids: list[str] | None = None,
     initial_price: float = 150.0, quantity: int = 200,
     retailer_target: float = 150.0, expected_retail_price: float = 200.0,
-    max_rounds: int = 5
+    max_rounds: int = 5, market_state: MarketSnapshot | None = None
 ) -> dict:
-    agents = build_agents()
+    agents = build_agents(market_state)
     coordinator = next(a for a in agents if a.role == "coordinator")
     available = coordinator.discover_sellers(agents)
     if seller_ids is None:
@@ -37,7 +38,7 @@ def run_supplier_competition(
             initial_price=initial_price, quantity=quantity,
             retailer_target=retailer_target,
             expected_retail_price=expected_retail_price,
-            max_rounds=max_rounds,
+            max_rounds=max_rounds, market_state=market_state,
         )
     offers = [
         {"seller_id": sid, "status": run["status"],
