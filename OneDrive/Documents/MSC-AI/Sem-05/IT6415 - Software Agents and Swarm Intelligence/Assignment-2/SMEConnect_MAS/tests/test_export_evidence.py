@@ -41,6 +41,10 @@ def test_evidence_export_matches_computed_batch(tmp_path):
     assert "S2 Stock Shortage" in completed
     assert "Insert measured value" not in completed
     assert "## 9. Conclusion and Future Work" in completed
+    assert "**Document status:** Results-filled MSc report" in completed
+    assert "**Results disclosure:** Section 6 contains measurements" in completed
+    assert "Copy these tables into Section 6" not in completed
+    assert "## Reporting instruction" not in completed
 
 
 def test_report_renders_numerical_table_from_batch_not_placeholders():
