@@ -3,6 +3,7 @@ from uuid import uuid4
 from smeconnect.communication.message_bus import InMemoryMessageBus
 from smeconnect.communication.message_schema import AgentMessage, Performative
 from smeconnect.environment.marketplace import build_agents
+from smeconnect.environment.market_state import MarketSnapshot
 from smeconnect.graphs.seller_graph import build_seller_graph
 from smeconnect.graphs.retailer_graph import build_retailer_graph
 
@@ -11,14 +12,14 @@ PRODUCT = "roasted_peanuts_100g"
 def run_negotiation(*, seller_id: str = "S1", retailer_id: str = "R1",
                     initial_price: float = 150.0, quantity: int = 200,
                     retailer_target: float = 150.0, expected_retail_price: float = 200.0,
-                    max_rounds: int = 5) -> dict:
+                    max_rounds: int = 5, market_state: MarketSnapshot | None = None) -> dict:
     """A round contains one seller graph invocation and at most one retailer response.
 
     An AGREED price is provisional: there is NO inventory, payment or delivery commit.
     """
     if not 1 <= max_rounds <= 10:
         raise ValueError("max_rounds must be between 1 and 10")
-    agents = build_agents()
+    agents = build_agents(market_state)
     seller = next(a for a in agents if a.agent_id == seller_id and a.role == "seller")
     retailer = next(a for a in agents if a.agent_id == retailer_id and a.role == "retailer")
     bus = InMemoryMessageBus({a.agent_id for a in agents}, max_messages=4 * max_rounds + 3)
