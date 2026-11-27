@@ -14,6 +14,7 @@ from dashboard.delivery_viz import render_delivery_coordination
 from dashboard.market_experiment_viz import render_market_experiment
 from dashboard.experiment_evaluation_viz import render_experiment_evaluation
 from dashboard.overview_viz import render_overview
+from dashboard.viva_mode import render_viva_mode
 from dashboard.ui_design import apply_theme, show_sidebar, show_header, PAGES
 
 st.set_page_config(page_title="SMEConnect AI | MAS Learning Lab", page_icon="🤝", layout="wide", initial_sidebar_state="expanded")
@@ -210,3 +211,6 @@ if selected_page == PAGES[8]:
             st.write(f'**Counter-offer:** Rs. {state["counter_price"]:,.2f}')
         with st.expander("Full LangGraph state (developer view)"):
             st.json(state)
+
+if selected_page == PAGES[9]:
+    render_viva_mode()
