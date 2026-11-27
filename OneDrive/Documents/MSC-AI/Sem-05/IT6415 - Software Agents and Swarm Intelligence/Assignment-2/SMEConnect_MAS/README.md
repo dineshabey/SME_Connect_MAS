@@ -239,7 +239,7 @@ Open **⚡ Workflow Simulator** under **PRESENTATION** in the Streamlit sidebar.
 
 1. Choose Retailer **R1 or R2**, one or both Sellers **S1/S2**, a requested quantity within that retailer's demand, opening unit price, target price, negotiation rounds, assumed resale price and playback speed.
 2. Review the synthetic retailer and public seller cards (only public seller asking prices and stock are shown).
-3. Click **Run complete MAS workflow**. The actual existing seller/retailer LangGraph negotiations, retailer-owned supplier choice and D1/C1 synthetic delivery/resource coordination execute **once in a fresh, isolated session ledger**.
+3. Click **Run complete MAS workflow** once. The actual seller/retailer LangGraph negotiations, retailer-owned supplier choice and D1/C1 synthetic delivery/resource coordination execute **once in a fresh, isolated session ledger**, then the captured trace **automatically animates from discovery to the final outcome**. The presenter's Previous/Next/Replay controls allow revisiting the same recorded events.
 4. Watch the generated trace, including supplier discovery, each genuine bilateral negotiation message (with the existing animated neon visual), supplier selection, delivery/coordination events, and the final status. Use **Previous**, **Next event**, **Play to final outcome** or **Replay from start**. Replaying never re-executes transactions.
 5. Inspect the final decision, negotiated price, delivery quote, reservation outcome, pre/post simulated resource values and actual typed messages in Technical Evidence.
 
