@@ -88,6 +88,29 @@ VIVA_CSS = """
 .viva-mini b{font-size:27px!important;color:#fff}
 .viva-mini small{display:block;font-size:19px!important;color:#d6e7ee}
 
+/* Readable tables and evidence cards for projection. Avoid tiny dataframe canvas text. */
+.viva-table-wrap{width:100%;overflow-x:auto;border:1px solid #42677e;border-radius:16px;margin:18px 0 24px}
+.viva-table{width:100%;border-collapse:collapse;min-width:680px;background:#142538}
+.viva-table th{font-size:22px!important;padding:20px 19px;text-align:left;line-height:1.4;
+  color:#b7f5eb;background:#1b3d51;border-bottom:2px solid #49798a}
+.viva-table td{font-size:22px!important;padding:20px 19px;line-height:1.5;color:#eef7fd;
+  border-bottom:1px solid #365366}
+.viva-table tr:last-child td{border-bottom:none}
+.viva-table tbody tr:nth-child(even){background:#192f43}
+.viva-feature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;margin:18px 0 23px}
+.viva-feature-card{border:1px solid #477a8c;border-radius:17px;padding:25px 27px;
+  background:linear-gradient(125deg,#1a354c,#20485b);min-height:150px}
+.viva-feature-title{color:#99f4df;font-size:28px!important;font-weight:800;line-height:1.35;margin-bottom:10px}
+.viva-feature-detail{color:#eff8ff;font-size:22px!important;line-height:1.55}
+.stApp [data-testid="stAlert"] p{font-size:22px!important;line-height:1.6!important}
+.stApp [data-testid="stCaptionContainer"] p{font-size:22px!important}
+.stApp [data-testid="stExpander"] summary p{font-size:22px!important}
+@media(max-width:850px){
+ .viva-feature-grid{grid-template-columns:1fr}
+ .viva-table th,.viva-table td{font-size:18px!important;padding:13px 12px}
+ .viva-feature-title{font-size:23px!important}
+ .viva-feature-detail{font-size:19px!important}
+}
 /* Native Streamlit elements used by every Viva step. */
 .stApp [data-testid="stCaptionContainer"] p{font-size:20px!important;line-height:1.6!important}
 .stApp [data-testid="stMarkdownContainer"] p,
@@ -449,6 +472,25 @@ def _adaptation():
     )
 
 
+def _presentation_table(rows: list[dict]):
+    """Render small, bounded synthetic evidence tables with projector-sized text."""
+    if not rows:
+        st.info("No records to display.")
+        return
+    columns = list(rows[0])
+    heading = "".join(f"<th scope='col'>{_escape(column)}</th>" for column in columns)
+    body = "".join(
+        "<tr>" + "".join(
+            f"<td>{_escape(record.get(column, ''))}</td>" for column in columns
+        ) + "</tr>" for record in rows
+    )
+    st.markdown(
+        "<div class='viva-table-wrap'><table class='viva-table'>"
+        f"<thead><tr>{heading}</tr></thead><tbody>{body}</tbody></table></div>",
+        unsafe_allow_html=True,
+    )
+
+
 def _evaluation():
     if st.button("▶ Run reproducible experiment grid", type="primary", key="viva_eval_run"):
         try:
@@ -464,7 +506,7 @@ def _evaluation():
         a.metric("Paired trials", config["paired_trials"])
         b.metric("Marketplace runs", config["snapshot_runs"])
         c.metric("Supplier switches", sum(row["supplier_switches"] for row in result["summary"]))
-        st.dataframe([
+        _presentation_table([
             {"Scenario": row["scenario_name"],
              "Trials": row["paired_trials"],
              "Supplier switches": row["supplier_switches"],
@@ -472,16 +514,26 @@ def _evaluation():
              "Normal expected gross profit (Rs.)": row["normal"]["mean_expected_gross_profit_rs"],
              "Changed expected gross profit (Rs.)": row["changed"]["mean_expected_gross_profit_rs"]}
             for row in result["summary"]
-        ], hide_index=True, use_container_width=True)
+        ])
     st.markdown("### MAS features supported by implementation evidence")
-    st.dataframe([
-        {"Feature": "Autonomy", "Evidence": "Separate LangGraph seller and retailer policies"},
-        {"Feature": "Communication", "Evidence": "Pydantic-validated message bus"},
-        {"Feature": "Competition", "Evidence": "Independent bilateral seller negotiations"},
-        {"Feature": "Cooperation", "Evidence": "D1 delivery quote and R1 approval"},
-        {"Feature": "Coordination", "Evidence": "C1 all-or-none session resource reservation"},
-        {"Feature": "Reactivity", "Evidence": "Recomputed choices under synthetic market snapshots"},
-    ], hide_index=True, use_container_width=True)
+    evidence = (
+        ("Autonomy", "Separate LangGraph seller and retailer policies"),
+        ("Communication", "Pydantic-validated message bus"),
+        ("Competition", "Independent bilateral seller negotiations"),
+        ("Cooperation", "D1 delivery quote and R1 approval"),
+        ("Coordination", "C1 all-or-none session resource reservation"),
+        ("Reactivity", "Recomputed choices under synthetic market snapshots"),
+    )
+    cards = ["<div class='viva-feature-grid'>"]
+    for feature, description in evidence:
+        cards.append(
+            "<article class='viva-feature-card'>"
+            f"<div class='viva-feature-title'>{_escape(feature)}</div>"
+            f"<div class='viva-feature-detail'>{_escape(description)}</div>"
+            "</article>"
+        )
+    cards.append("</div>")
+    st.markdown("".join(cards), unsafe_allow_html=True)
     st.caption(
         "LangGraph is a stateful workflow library. This example executes agents sequentially "
         "within one Python process; NetLogo and SPADE address different agent simulation "
