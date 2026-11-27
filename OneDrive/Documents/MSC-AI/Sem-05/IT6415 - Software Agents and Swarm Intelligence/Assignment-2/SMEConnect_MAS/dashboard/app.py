@@ -14,91 +14,12 @@ from dashboard.delivery_viz import render_delivery_coordination
 from dashboard.market_experiment_viz import render_market_experiment
 from dashboard.experiment_evaluation_viz import render_experiment_evaluation
 from dashboard.overview_viz import render_overview
+from dashboard.ui_design import apply_theme, show_sidebar, show_header, PAGES
 
-st.set_page_config(page_title="SMEConnect AI | MAS Learning Lab", page_icon="🤝", layout="wide")
-st.markdown(
-    """
-    <style>
-    .block-container{max-width:100% !important;width:100% !important;padding:1.4rem clamp(1rem,2.3vw,3rem) 3rem !important}
-    /* Presentation mode: explicit pixel sizes override Streamlit's small defaults. */
-    html{font-size:20px}
-    .stApp, .stApp [data-testid="stMarkdownContainer"] p,
-    .stApp [data-testid="stMarkdownContainer"] li,
-    .stApp [data-testid="stText"]{font-size:21px !important;line-height:1.65 !important}
-    .stApp h1{font-size:40px !important;line-height:1.2 !important}
-    .stApp h2{font-size:36px !important;line-height:1.25 !important}
-    .stApp h3{font-size:30px !important;line-height:1.3 !important}
-    .stApp [data-testid="stCaptionContainer"],
-    .stApp [data-testid="stCaptionContainer"] p,
-    .stApp small{font-size:18px !important;line-height:1.55 !important}
-    .stApp [data-testid="stWidgetLabel"] p,
-    .stApp [data-testid="stMetricLabel"] p{font-size:21px !important;font-weight:650 !important}
-    .stApp [data-testid="stMetricValue"]{font-size:45px !important;line-height:1.2 !important}
-    .stApp [data-testid="stMetricValue"] *{font-size:inherit !important}
-    .stApp button[kind], .stApp [data-testid="stBaseButton-secondary"],
-    .stApp [data-testid="stBaseButton-primary"]{font-size:21px !important;min-height:56px !important}
-    .stApp button[kind] p{font-size:21px !important}
-    .stApp [data-baseweb="tab-list"]{flex-wrap:wrap;gap:8px 12px}
-    .stApp [data-baseweb="tab"]{font-size:21px !important;padding:13px 18px !important;min-height:56px}
-    .stApp [data-baseweb="tab"] p{font-size:21px !important;white-space:normal}
-    .stApp [data-baseweb="input"] input,
-    .stApp [data-baseweb="select"]{font-size:20px !important}
-    .stApp [data-testid="stDataFrame"]{font-size:19px}
-    @media(max-width:750px){
-      html{font-size:17px}
-      .stApp [data-testid="stMarkdownContainer"] p,
-      .stApp [data-testid="stMarkdownContainer"] li{font-size:17px !important}
-      .stApp [data-testid="stCaptionContainer"] p{font-size:15px !important}
-      .stApp [data-testid="stMetricValue"]{font-size:32px !important}
-      .stApp [data-baseweb="tab"]{padding:9px 11px !important}
-      .stApp [data-baseweb="tab"] p{font-size:16px !important}
-    }
-    .hero{background:linear-gradient(110deg,#142b42,#136b73);border:1px solid #328a93;
-      padding:23px 26px;border-radius:17px;color:#f5fafc;margin-bottom:14px}
-    .hero h2{font-size:42px !important;color:white;margin:0 0 7px}
-    .hero p{font-size:22px !important;margin:0;color:#d7e7f0}
-    .eyebrow{font-size:18px;font-weight:700;letter-spacing:.08em;color:#70d5d6}
-    .guide{padding:14px 18px;border:1px solid #39536f;border-radius:12px;
-      background:#14283b;color:#e8f1f9;margin:12px 0}
-    .guide b{color:#b8f2f2}
-    .diagram{background:linear-gradient(135deg,#17283c,#1b3644);color:#f2f8fc;
-      padding:20px;border:1px solid #375c72;border-radius:17px;margin-top:8px}
-    .network{display:grid;grid-template-columns:1fr 1.35fr 1fr;align-items:center;gap:13px}
-    .actor{background:#1d4565;border:1px solid #4589b1;padding:20px 10px;
-      border-radius:12px;text-align:center;min-height:135px}
-    .actor.seller{background:#21513e;border-color:#3aa784}
-    .actor .emoji{font-size:32px;margin-bottom:6px}
-    .actor strong{font-size:17px;display:block}
-    .actor small{color:#d8e8ed;font-size:15px;display:block;margin-top:6px}
-    .signal{text-align:center;min-height:116px;padding-top:13px}
-    .signal b{display:inline-block;background:#14597a;border:1px solid #45afd0;
-      padding:7px 13px;border-radius:24px;font-size:13px}
-    .signal small{font-size:0.92rem;display:block;margin:6px 0;color:#d6e5ed}
-    .rail{height:5px;background:linear-gradient(90deg,#21c59d,#55a9f1);position:relative;margin:19px 8px 10px;border-radius:10px}
-    .dot{position:absolute;top:-8px;height:20px;width:20px;border-radius:50%;
-      background:#fff;border:3px solid #38bdf8;box-shadow:0 0 14px #50c2fe}
-    .dot.forward{animation:forward 1.2s ease-in-out infinite}
-    .dot.backward{animation:backward 1.2s ease-in-out infinite}
-    @keyframes forward{0%{left:0}100%{left:calc(100% - 20px)}}
-    @keyframes backward{0%{left:calc(100% - 20px)}100%{left:0}}
-    .explainer{background:#0f3040;border-left:4px solid #37b4c5;border-radius:7px;
-      padding:14px;margin-top:17px;line-height:1.7}
-    .steps{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
-    .step{background:#2d4256;border:1px solid #46617b;padding:6px 10px;
-      border-radius:7px;font-size:11px}
-    .step.current{background:#126f7c;border-color:#3ad0d0;font-weight:700}
-    @media(max-width:700px){.network{grid-template-columns:1fr}.actor{min-height:95px}
-      .signal{min-height:95px}.hero h2{font-size:1.4rem}}
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-st.markdown(
-    '<div class="hero"><div class="eyebrow">MSc IT6415 · SOFTWARE AGENTS AND SWARM INTELLIGENCE</div>'
-    '<h2>🤝 SMEConnect AI — Multi-Agent Learning Lab</h2>'
-    '<p>See what each agent knows, why it responds, and how a negotiation develops — one message at a time.</p></div>',
-    unsafe_allow_html=True,
-)
+st.set_page_config(page_title="SMEConnect AI | MAS Learning Lab", page_icon="🤝", layout="wide", initial_sidebar_state="expanded")
+apply_theme()
+selected_page = show_sidebar()
+show_header(selected_page)
 
 def safe(value):
     return html.escape(str(value), quote=True)
@@ -134,25 +55,19 @@ def event_visual(timeline, index, buyer, seller):
 def set_step(index, count):
     st.session_state["walk_step"] = min(max(index, 0), count - 1)
 
-tab_overview, tab_marketplace, tab_competition, tab_delivery, tab_market, tab_evaluation, tab_tour, tab_seller, tab_retailer = st.tabs(
-    ["🎓 Professor Demo", "🏬 Marketplace", "🏆 Phase 03 · Supplier Competition",
-     "🚚 Phase 04 · Delivery Coordination", "📈 Phase 05 · Market Adaptation",
-     "🧪 Phase 05.2 · Experiments", "💬 Guided Negotiation",
-     "🏪 Seller Decision Lab", "🛒 Retailer Decision Lab"]
-)
-with tab_overview:
+if selected_page == PAGES[0]:
     render_overview()
-with tab_marketplace:
+if selected_page == PAGES[1]:
     render_marketplace()
-with tab_market:
+if selected_page == PAGES[4]:
     render_market_experiment()
-with tab_evaluation:
+if selected_page == PAGES[5]:
     render_experiment_evaluation()
-with tab_delivery:
+if selected_page == PAGES[3]:
     render_delivery_coordination()
-with tab_competition:
+if selected_page == PAGES[2]:
     render_competition()
-with tab_tour:
+if selected_page == PAGES[6]:
     st.markdown("### STEP 1 · Understand the business scenario")
     st.markdown(
         '<div class="guide"><b>Why?</b> A retailer wants to buy peanut packets at a good price; '
@@ -258,7 +173,7 @@ with tab_tour:
             st.caption(f'Conversation ID: {outcome["conversation_id"]}')
             st.json([m.model_dump(mode="json") for m in outcome["messages"]])
 
-with tab_seller:
+if selected_page == PAGES[7]:
     st.subheader("Seller Decision Lab")
     st.write("A single seller evaluates one incoming proposal. This is **not** a full negotiation.")
     if st.button("Evaluate one seller offer", key="seller_test"):
@@ -272,7 +187,7 @@ with tab_seller:
         with st.expander("Raw message"):
             st.json([m.model_dump(mode="json") for m in r["messages"]])
 
-with tab_retailer:
+if selected_page == PAGES[8]:
     st.subheader("Retailer Decision Lab")
     st.write("A retailer evaluates an offered price using its own budget, demand and expected profit.")
     retailer = st.selectbox("Retailer", ["R1", "R2"], key="retailer_lab")
