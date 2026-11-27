@@ -124,3 +124,7 @@ For the architecture, limitations and commands see [architecture notes](docs/arc
 The Delivery Coordination tab now displays the latest attempt's outcome first, then a four-checkpoint agent journey, retailer supplier selection, transparent purchase + delivery breakdown, and **before/after session resources**. Technical message records and raw reservation IDs are available under expandable evidence sections. This is a presentation-only change: it does not modify LangGraph decisions, message passing, or reservation logic.
 
 A fresh run is needed after changing input settings; the result panel describes the most recent completed attempt. Use **Reset market** to restore synthetic session resources.
+
+### Phase 05.1 – Market Changes and Adaptation
+
+Use the **📈 Phase 05 · Market Adaptation** tab to compare real bounded negotiations under independent normal and synthetic changed-market snapshots (stock shortage, private pricing shock, demand surge). Market Agent M1 records a typed public market notification; existing LangGraph decisions are rerun with scenario-specific agent constraints. The experiment shows actual before/after supplier choices, prices and message traces, without completing orders. See [architecture](docs/architecture.md) for limitations.
