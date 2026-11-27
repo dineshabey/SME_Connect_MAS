@@ -122,6 +122,8 @@ def render_completed_report(batch: dict, *, template: str) -> str:
     before, remaining = template.split(opening, 1)
     _, after = remaining.split(closing, 1)
     section = render_results_markdown(batch)
+    # A generated report already contains the tables; omit copy instructions.
+    section = section.split("## Reporting instruction", 1)[0].rstrip() + "\\n"
     section = section.replace(
         "# Verified-by-execution synthetic evaluation output",
         "### 6.1 Measured synthetic evaluation (local execution)",
@@ -130,12 +132,16 @@ def render_completed_report(batch: dict, *, template: str) -> str:
     ).replace("## Interpretation boundaries", "#### Interpretation boundaries"
     ).replace("## Reporting instruction", "#### Reporting instruction")
     completed = before + section + after
-    return completed.replace(
+    completed = completed.replace(
         "## 6. Results — Verification Required",
         "## 6. Results — Locally Measured Synthetic Simulation",
     ).replace(
         "replace the results placeholders with verified local experiment outputs before submission.",
         "contains results generated from a local synthetic simulation; review pytest and provenance before submission.",
+    )
+    return completed.replace(
+        "- [ ] Insert the generated measured-results table into Section 6",
+        "- [x] Measured synthetic results inserted into Section 6 by the evidence exporter",
     )
 
 
