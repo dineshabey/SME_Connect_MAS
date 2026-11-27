@@ -67,3 +67,13 @@ def test_agent_cards_are_role_colored_and_trace_remains_real():
     for classname in ('smc-kpi-card', 'smc-agent-card', 'smc-agent-avatar'):
         assert f'.{classname}' in theme
     assert 'st.button(' in overview
+
+
+def test_quick_launch_navigation_keeps_real_buttons():
+    overview = (PROJECT / "dashboard" / "overview_viz.py").read_text(encoding="utf-8")
+    theme = (PROJECT / "dashboard" / "ui_design.py").read_text(encoding="utf-8")
+    for key in ("quick_market", "quick_compete", "quick_experiment"):
+        assert f'"{key}"' in overview
+        assert f".st-key-{key} button" in theme
+    assert 'on_click=navigate_to' in overview
+    assert 'smc-launch-item' in overview
