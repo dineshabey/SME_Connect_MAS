@@ -375,6 +375,13 @@ def _large_evidence_table(rows: list[dict], *, columns: list[str]) -> None:
     )
 
 
+def _sequence_preview_changed() -> None:
+    """Mark current controls as a draft; never execute agent logic in callbacks."""
+    st.session_state["seq_preview_revision"] = (
+        st.session_state.get("seq_preview_revision", 0) + 1
+    )
+
+
 def render_sequence_replay():
     st.markdown("### Configure and run a real sequence")
     st.caption(
@@ -386,29 +393,29 @@ def render_sequence_replay():
     # These widgets are deliberately OUTSIDE st.form: every change reruns this
     # preview immediately. Only the explicit Run button calls _run_session().
     a, b, c = st.columns(3)
-    retailer_id = a.selectbox("Retailer", ["R1", "R2"], key="seq_retailer")
+    retailer_id = a.selectbox("Retailer", ["R1", "R2"], key="seq_retailer", on_change=_sequence_preview_changed)
     seller_ids = b.multiselect(
         "Competing sellers", ["S1", "S2"], default=["S1", "S2"],
-        key="seq_sellers",
+        key="seq_sellers", on_change=_sequence_preview_changed,
     )
     quantity = c.number_input(
         "Quantity (packets)", min_value=1, max_value=300,
-        value=200, step=10, key="seq_quantity",
+        value=200, step=10, key="seq_quantity", on_change=_sequence_preview_changed,
     )
     d, e, f, g = st.columns(4)
     offer = d.number_input(
-        "Initial offer (Rs.)", 100., 190., 150., 5., key="seq_offer",
+        "Initial offer (Rs.)", 100., 190., 150., 5., key="seq_offer", on_change=_sequence_preview_changed,
     )
     target = e.number_input(
-        "Retailer target (Rs.)", 100., 190., 150., 5., key="seq_target",
+        "Retailer target (Rs.)", 100., 190., 150., 5., key="seq_target", on_change=_sequence_preview_changed,
     )
-    rounds = f.slider("Maximum rounds", 1, 10, 5, key="seq_rounds")
+    rounds = f.slider("Maximum rounds", 1, 10, 5, key="seq_rounds", on_change=_sequence_preview_changed)
     resale = g.number_input(
         "Assumed resale price (Rs.)", 100., 350., 200., 5.,
-        key="seq_resale",
+        key="seq_resale", on_change=_sequence_preview_changed,
     )
     speed = st.selectbox(
-        "Animation speed", ["Slow", "Normal", "Fast"], index=1, key="seq_speed",
+        "Animation speed", ["Slow", "Normal", "Fast"], index=1, key="seq_speed", on_change=_sequence_preview_changed,
     )
 
     buyer = agents[retailer_id]
@@ -416,6 +423,7 @@ def render_sequence_replay():
     quantity_ok = quantity <= buyer.demand
     seller_ok = bool(seller_ids)
     budget_warning = estimate > buyer.budget
+    estimated_margin = int(quantity) * (float(resale) - float(offer))
     can_run = seller_ok and quantity_ok
 
     st.markdown("""
@@ -432,6 +440,11 @@ def render_sequence_replay():
         margin:6px 0}
       .seq-profile strong{color:#b3ffe8}
       .seq-profile.warn{border-color:#ffbd73}
+      .seq-profile .status{display:inline-block;padding:6px 12px;border-radius:999px;
+        font-size:17px;font-weight:750;margin-bottom:10px;
+        color:#a8ffdf;background:#16483f;border:1px solid #367969}
+      .seq-profile.warn .status{color:#ffe4b8;background:#604422;border-color:#c58a55}
+      .seq-profile .small{font-size:17px!important;color:#bcd7e5!important}
       .seq-preview-hint{font-size:19px;color:#c0d9e7}
       @media(max-width:1000px){.seq-profiles{grid-template-columns:1fr}}
     </style>
@@ -442,23 +455,34 @@ def render_sequence_replay():
         '<article class="seq-profile buyer' +
         (' warn' if not quantity_ok else '') + '">'
         f'<h3>🛒 Retailer {escape(retailer_id)}</h3>'
-        f'<p><strong>Registered demand:</strong> {buyer.demand:,} packets</p>'
-        f'<p><strong>Requested quantity:</strong> {int(quantity):,} packets</p>'
-        f'<p><strong>Available budget:</strong> Rs.{buyer.budget:,.2f}</p>'
-        f'<p><strong>Initial buying offer:</strong> Rs.{offer:,.2f}</p>'
-        f'<p><strong>Target unit price:</strong> Rs.{target:,.2f}</p>'
+        '<span class="status">' +
+        ('Quantity exceeds demand' if not quantity_ok else 'Ready to evaluate') +
+        '</span>'
+        f'<p><strong>Current request:</strong> {int(quantity):,} packets</p>'
+        f'<p><strong>Opening offer:</strong> Rs.{offer:,.2f} / packet</p>'
+        f'<p><strong>Target:</strong> Rs.{target:,.2f} / packet</p>'
+        f'<p><strong>Estimated opening cost:</strong> Rs.{estimate:,.2f}</p>'
+        f'<p><strong>Expected gross margin at offer:</strong> Rs.{estimated_margin:,.2f}</p>'
+        f'<p class="small">Agent baseline · Demand {buyer.demand:,} packets '
+        f'· Budget Rs.{buyer.budget:,.2f}</p>'
         '</article>'
     )
     for sid in seller_ids:
         listing = listings[sid]
+        stock_ok = int(quantity) <= listing.advertised_stock
         profiles.append(
-            '<article class="seq-profile">'
+            '<article class="seq-profile' + (' warn' if not stock_ok else '') + '">'
             f'<h3>🏪 Seller {escape(sid)}</h3>'
+            '<span class="status">' +
+            ('Insufficient advertised stock' if not stock_ok else 'Stock sufficient for request') +
+            '</span>'
+            f'<p><strong>Current request:</strong> {int(quantity):,} packets</p>'
+            f'<p><strong>Opening offer received:</strong> Rs.{offer:,.2f}</p>'
             f'<p><strong>Public asking price:</strong> Rs.{listing.listed_price:,.2f}</p>'
             f'<p><strong>Advertised stock:</strong> {listing.advertised_stock:,} packets</p>'
-            f'<p><strong>Requested quantity:</strong> {int(quantity):,} packets</p>'
-            f'<p><strong>Initial retailer offer:</strong> Rs.{offer:,.2f}</p>'
-            '<p><strong>Pricing decision:</strong> Pending simulation</p>'
+            f'<p><strong>Units after potential allocation:</strong> '
+            f'{max(0, listing.advertised_stock - int(quantity)):,}</p>'
+            '<p class="small">Preview only · No seller decision until Run</p>'
             '</article>'
         )
     profiles.append("</div>")
@@ -466,7 +490,8 @@ def render_sequence_replay():
     st.caption(
         f"Scenario preview · {len(seller_ids)} selected sellers · "
         f"{rounds} maximum negotiation rounds · Rs.{resale:,.2f} "
-        "assumed resale price. Changes here do not run agents or reserve stock."
+        "assumed resale price. The preview updates when input changes are committed "
+        "(use Enter or move focus after typing). Only Run executes agents."
     )
     if not seller_ok:
         st.error("Choose at least one seller to run the scenario.")
@@ -498,6 +523,7 @@ def render_sequence_replay():
             run_result["sequence_events"] = _sequence_events(run_result)
             run_result["sequence_speed"] = speed
             st.session_state["sequence_run"] = run_result
+            st.session_state["seq_last_run_revision"] = st.session_state.get("seq_preview_revision", 0)
         except (ValueError, RuntimeError, KeyError) as exc:
             st.error(f"Sequence execution failed: {exc}")
 
@@ -506,12 +532,18 @@ def render_sequence_replay():
         st.info("Select agents and press Run to generate the full recorded sequence.")
         return
     saved = result["params"]
-    if (saved["retailer_id"] != retailer_id or saved["seller_ids"] != seller_ids
-            or saved["quantity"] != int(quantity)
-            or saved["initial_price"] != float(offer)
-            or saved["target"] != float(target) or saved["rounds"] != rounds
-            or saved["resale_price"] != float(resale)):
-        st.warning("Configuration changed. The diagram still shows the last completed run. Press Run to update.")
+    if (
+        saved["retailer_id"] != retailer_id or saved["seller_ids"] != seller_ids
+        or saved["quantity"] != int(quantity)
+        or saved["initial_price"] != float(offer)
+        or saved["target"] != float(target) or saved["rounds"] != rounds
+        or saved["resale_price"] != float(resale)
+    ):
+        st.warning(
+            "Your live agent cards show the CURRENT draft configuration. "
+            "The sequence diagram below still shows the LAST completed run. "
+            "Click Run and animate agent sequence to update the recorded evidence."
+        )
     st.markdown("### Animated message sequence")
     selected = result["competition"]["evaluated_seller_ids"]
     # Keep actor columns grounded in the selected scenario. The coordinator
