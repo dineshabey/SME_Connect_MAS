@@ -101,3 +101,21 @@ python -m py_compile dashboard/app.py dashboard/delivery_viz.py smeconnect/simul
 python -m pytest -q
 python -m streamlit run dashboard/app.py
 ```
+
+## Phase 05.1 — Dynamic market snapshots and Market Agent signals
+
+`smeconnect/environment/market_state.py` defines bounded, synthetic scenarios: normal; S2 stock shortage (S2 drops to 100 packets); S2 input-price pressure (seller's **private** minimum and target adjust internally); and R1 demand surge (200 → 240 packets). Scenario inputs create **new agent instances** via `build_agents(market_state)`, rather than mutating globally configured agents.
+
+`smeconnect/simulation/market_experiment.py` runs independent normal/changed comparisons through the **existing LangGraph seller/retailer negotiation engine and retailer supplier-selection graph**. Market Agent M1 observes a limited public market signal and sends a Pydantic-validated `INFORM` message to the selected retailer through the existing in-memory bus. The retailer does **not** receive sellers' private minimum/target prices. The market signal is an observable informational message; the scenario state is what changes the agents' negotiation inputs.
+
+The Streamlit `📈 Phase 05 · Market Adaptation` tab shows scenario selection, M1's typed market notification, public stock/demand before vs. after, actual supplier outcomes, negotiated price changes and raw evidence. A supplier change is **not hard-coded**; S2 may reject a 200-packet order after stock shortage, leaving S1 feasible. Demand surge can also leave the same supplier selected, demonstrating that adaptation does not guarantee a changed winner.
+
+**Limits:** no live market data, external messages or autonomous sensing. These are predetermined counterfactual scenarios and **rule-based responses to changed inputs**, not online learning or verified emergent self-organization. Experiments do not reserve stock or budgets, and they do not modify the independent Phase 04 session ledger. The Marketplace catalogue still shows its normal static listings rather than scenario-specific values.
+
+**Run locally:**
+
+```powershell
+python -m py_compile smeconnect/environment/market_state.py smeconnect/environment/marketplace.py smeconnect/simulation/market_experiment.py dashboard/market_experiment_viz.py dashboard/app.py
+python -m pytest -q
+python -m streamlit run dashboard/app.py
+```
