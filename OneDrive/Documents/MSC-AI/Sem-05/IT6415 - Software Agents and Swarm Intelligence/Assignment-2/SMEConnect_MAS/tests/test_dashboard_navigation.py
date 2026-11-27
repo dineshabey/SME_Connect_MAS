@@ -12,7 +12,7 @@ PROJECT = Path(__file__).resolve().parents[1]
 
 
 def test_all_workspaces_have_distinct_navigation_names_and_descriptions():
-    assert len(PAGES) == 9
+    assert len(PAGES) == 10
     assert len(set(PAGES)) == len(PAGES)
     assert set(PAGE_METADATA) == set(PAGES)
     assert all(len(title) > 5 and len(description) > 25
@@ -85,7 +85,37 @@ def test_sidebar_uses_grouped_buttons_instead_of_radio_circles():
     assert 'key=f"smc_nav_{index}"' in theme
     assert 'on_click=navigate_to' in theme
     assert 'type="primary" if selected == page else "secondary"' in theme
-    for group in ("WORKSPACE", "AGENT WORKFLOWS", "LEARNING LABS"):
+    for group in ("WORKSPACE", "AGENT WORKFLOWS", "LEARNING LABS", "PRESENTATION"):
         assert group in theme
     assert '.smc-menu-group' in theme
     assert 'smc_nav_' in theme
+
+
+def test_viva_page_has_ten_english_only_stages_and_real_simulation_calls():
+    source = (PROJECT / "dashboard" / "viva_mode.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert '"🎓 Viva Presentation"' in (PROJECT / "dashboard" / "ui_design.py").read_text(encoding="utf-8")
+    assert 'if selected_page == PAGES[9]:' in (PROJECT / "dashboard" / "app.py").read_text(encoding="utf-8")
+    for part in (
+        'Full multi-agent architecture',
+        'Meet the two seller agents',
+        'Meet retailer R1',
+        'Discover available suppliers',
+        'Replay actual negotiations',
+        'Retailer selects the supplier',
+        'Cooperate on delivery',
+        'Reserve simulated resources',
+        'Respond to a market shock',
+        'Evaluate MAS characteristics',
+    ):
+        assert part in source
+    for call in (
+        'public_listings()',
+        'run_supplier_competition(',
+        'run_delivery_coordination(',
+        'run_market_experiment(',
+        'run_experiment_batch(',
+    ):
+        assert call in source
+    assert 'viva_message_step' in source
+    assert 'No real purchase' in source
