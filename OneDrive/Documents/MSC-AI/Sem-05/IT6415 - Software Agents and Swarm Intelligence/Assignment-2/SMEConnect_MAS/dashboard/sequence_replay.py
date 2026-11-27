@@ -7,6 +7,7 @@ replay do not make additional bookings or change agent state.
 from __future__ import annotations
 
 import json
+from html import escape
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -312,6 +313,38 @@ if(!reduced)start();
     return page.replace("__DATA__", payload)
 
 
+def _large_evidence_table(rows: list[dict], *, columns: list[str]) -> None:
+    """Readable, escaped trace table for viva projection instead of tiny canvas text."""
+    if not rows:
+        st.info("No evidence records available.")
+        return
+    st.markdown("""
+    <style>
+    .seq-table-wrap{overflow-x:auto;max-height:490px;overflow-y:auto;
+      border:1px solid #49768f;border-radius:14px;margin:10px 0 20px}
+    table.seq-table{width:100%;border-collapse:collapse;min-width:1040px;background:#122436}
+    .seq-table th{position:sticky;top:0;background:#21465c;color:#bcfff1;
+      font-size:20px!important;padding:16px 18px;text-align:left;z-index:1}
+    .seq-table td{font-size:19px!important;padding:15px 18px;color:#f0f7fe;
+      border-top:1px solid #34546c;line-height:1.5}
+    .seq-table tr:nth-child(even){background:#1a3147}
+    </style>
+    """, unsafe_allow_html=True)
+    headings = "".join("<th>" + escape(c) + "</th>" for c in columns)
+    body = "".join(
+        "<tr>" + "".join(
+            "<td>" + escape(str(row.get(c, "") if row.get(c) is not None else "—")) + "</td>"
+            for c in columns
+        ) + "</tr>" for row in rows
+    )
+    st.markdown(
+        '<div class="seq-table-wrap"><table class="seq-table">'
+        "<thead><tr>" + headings + "</tr></thead><tbody>" + body +
+        "</tbody></table></div>",
+        unsafe_allow_html=True,
+    )
+
+
 def render_sequence_replay():
     st.markdown("### Configure and run a real sequence")
     st.caption(
@@ -402,10 +435,17 @@ def render_sequence_replay():
         height=905, scrolling=False,
     )
     with st.expander("Technical evidence — actual messages and decision logs"):
-        st.dataframe(result["sequence_events"], use_container_width=True, hide_index=True)
-        st.write("**Computed supplier evaluation:**")
-        st.dataframe(result["competition"]["selection"]["evaluations"],
-                     use_container_width=True, hide_index=True)
+        _large_evidence_table(
+            result["sequence_events"],
+            columns=["phase", "kind", "sender", "receiver", "action", "description",
+                     "round", "price", "quantity"],
+        )
+        st.markdown("### Computed supplier evaluation")
+        _large_evidence_table(
+            result["competition"]["selection"]["evaluations"],
+            columns=["seller_id", "negotiation_status", "price", "purchase_cost",
+                     "expected_gross_profit", "eligible", "explanation"],
+        )
         messages = []
         for sid in selected:
             messages.extend(result["competition"]["negotiations"][sid]["messages"])
