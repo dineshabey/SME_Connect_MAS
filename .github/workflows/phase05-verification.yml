@@ -1,0 +1,91 @@
+name: SMEConnect MSc Phase 05.3 verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'OneDrive/Documents/MSC-AI/Sem-05/IT6415 - Software Agents and Swarm Intelligence/Assignment-2/SMEConnect_MAS/**'
+      - '.github/workflows/phase05-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-report:
+    name: Test MAS and generate academic evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+        working-directory: 'OneDrive/Documents/MSC-AI/Sem-05/IT6415 - Software Agents and Swarm Intelligence/Assignment-2/SMEConnect_MAS'
+    steps:
+      - name: Checkout current commit
+        uses: actions/checkout@v4
+
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: 'OneDrive/Documents/MSC-AI/Sem-05/IT6415 - Software Agents and Swarm Intelligence/Assignment-2/SMEConnect_MAS/requirements.txt'
+
+      - name: Install project dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Verify Python syntax
+        run: |
+          python -m compileall -q smeconnect dashboard tests
+
+      - name: Run complete pytest suite
+        run: |
+          python -m pytest -q
+
+      - name: Generate measured synthetic evidence
+        run: |
+          python -m smeconnect.simulation.export_evidence --out-dir evaluation_output
+
+      - name: Inspect generated report and experiment files
+        run: |
+          python - <<'PY'
+          import csv
+          import json
+          from pathlib import Path
+
+          root = Path("evaluation_output")
+          expected = {
+              "phase05_trials.csv",
+              "phase05_summary.json",
+              "RESULTS_FOR_REPORT.md",
+              "FINAL_REPORT_WITH_RESULTS.md",
+          }
+          found = {p.name for p in root.iterdir() if p.is_file()}
+          assert expected.issubset(found), f"Missing files: {expected - found}"
+
+          with (root / "phase05_trials.csv").open(encoding="utf-8-sig", newline="") as stream:
+              rows = list(csv.DictReader(stream))
+          summary = json.loads((root / "phase05_summary.json").read_text(encoding="utf-8"))
+          report = (root / "FINAL_REPORT_WITH_RESULTS.md").read_text(encoding="utf-8")
+          assert len(rows) == 18, f"Expected 18 paired trials, found {len(rows)}"
+          assert summary["config"]["paired_trials"] == 18
+          assert summary["config"]["snapshot_runs"] == 36
+          assert sum(s["paired_trials"] for s in summary["summary"]) == len(rows)
+          assert "Insert measured value" not in report
+          assert "Compute from evidence" not in report
+          assert "<!-- PHASE05_RESULTS_START -->" not in report
+          assert "## 6. Results — Locally Measured Synthetic Simulation" in report
+          assert "| S2 Stock Shortage |" in report
+          assert summary["source_git_commit"] != "not available"
+          print("PASS: 18 pairs, 36 runs, report results inserted and provenance recorded.")
+          PY
+
+      - name: Upload evidence for review
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smeconnect-phase05-evidence
+          path: 'OneDrive/Documents/MSC-AI/Sem-05/IT6415 - Software Agents and Swarm Intelligence/Assignment-2/SMEConnect_MAS/evaluation_output/'
+          retention-days: 14
