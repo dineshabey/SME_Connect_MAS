@@ -128,51 +128,74 @@ def render_overview() -> None:
     sellers = [a for a in agents if a.role == "seller"]
     retailers = [a for a in agents if a.role == "retailer"]
 
-    st.markdown("### Marketplace at a glance")
-    a, b, c, d = st.columns(4)
-    for col, title, value, help_text in (
-        (a, "Registered agents", len(agents), "Synthetic registered agents from the Python registry"),
-        (b, "Independent sellers", len(sellers), "S1 and S2 negotiate separately"),
-        (c, "Retailer agents", len(retailers), "Independent budget and demand constraints"),
-        (d, "Market shocks", len(SCENARIO_NAMES) - 1, "Controlled synthetic market events"),
-    ):
-        with col:
-            with st.container(border=True):
-                st.metric(title, value, help=help_text)
+    st.markdown('<div class="smc-overview-intro"><div><h2>Marketplace at a glance</h2>'
+                '<p>Seven independent roles. One explainable synthetic marketplace.</p></div>'
+                '<span class="smc-overview-pill">● SIMULATION WORKSPACE</span></div>',
+                unsafe_allow_html=True)
+    kpis = (
+        ("Registered agents", len(agents), "Agent registry · all five roles", "🤖", ""),
+        ("Independent sellers", len(sellers), "Competing pricing strategies", "🏪", "smc-green"),
+        ("Retailer agents", len(retailers), "Independent budgets and demand", "🛒", "smc-blue"),
+        ("Market shocks", len(SCENARIO_NAMES) - 1, "Controlled what-if experiments", "📈", "smc-purple"),
+    )
+    tiles = ['<div class="smc-kpi-grid">']
+    for label, value, detail, icon, color in kpis:
+        tiles.append(
+            f'<div class="smc-kpi-card {color}">'
+            f'<div class="smc-kpi-top"><div class="smc-kpi-label">{html.escape(label)}</div>'
+            f'<div class="smc-kpi-icon">{html.escape(icon)}</div></div>'
+            f'<div class="smc-kpi-value">{value}</div>'
+            f'<div class="smc-kpi-detail">{html.escape(detail)}</div></div>'
+        )
+    tiles.append("</div>")
+    st.markdown("".join(tiles), unsafe_allow_html=True)
 
     main, helper = st.columns([1.75, 1], gap="large")
     with main:
         st.markdown("### How the agents collaborate")
         _network()
     with helper:
-        st.markdown("### Quick start")
+        st.markdown("### Start exploring")
         with st.container(border=True):
-            st.markdown("**01 · Explore marketplace**")
+            st.markdown("**01  ·  Explore marketplace**")
             st.caption("See public listing prices and supplier availability.")
             st.button("Open Marketplace", use_container_width=True,
                       key="quick_market", on_click=navigate_to, args=(PAGES[1],))
             st.divider()
-            st.markdown("**02 · Watch autonomous negotiation**")
+            st.markdown("**02  ·  Watch agent negotiation**")
             st.caption("Compare seller offers and the retailer's selected supplier.")
             st.button("Open Competition", use_container_width=True,
                       key="quick_compete", on_click=navigate_to, args=(PAGES[2],))
             st.divider()
-            st.markdown("**03 · Evaluate the market**")
+            st.markdown("**03  ·  Analyze market scenarios**")
             st.caption("Compare controlled market shocks and measured responses.")
             st.button("Open Analytics", use_container_width=True,
                       key="quick_experiment", on_click=navigate_to, args=(PAGES[5],))
         st.caption("You can reach all nine workspaces through the sidebar.")
 
-    st.markdown("### Meet the agents")
-    for i in range(0, len(AGENT_DESCRIPTIONS), 4):
-        cols = st.columns(4)
-        for col, (agent_id, emoji, title, detail, role) in zip(cols, AGENT_DESCRIPTIONS[i:i+4]):
-            with col:
-                with st.container(border=True):
-                    st.markdown(f"**{emoji} {agent_id} · {title}**")
-                    st.caption(detail)
-                    st.markdown(f'<span class="smc-tag">{html.escape(role.upper())}</span>',
-                                unsafe_allow_html=True)
+    st.markdown('<div class="smc-section-title">Meet the agents</div>', unsafe_allow_html=True)
+    role_colors = {
+        "Seller": "seller",
+        "Retailer": "retailer",
+        "Delivery": "delivery",
+        "Market": "market",
+        "Coordinator": "coordinator",
+    }
+    cards = ['<div class="smc-agent-grid">']
+    for agent_id, emoji, title, detail, role in AGENT_DESCRIPTIONS:
+        css_class = role_colors[role]
+        cards.append(
+            f'<article class="smc-agent-card {css_class}">'
+            f'<div class="smc-agent-upper">'
+            f'<div class="smc-agent-avatar">{html.escape(emoji)}</div>'
+            f'<div><div class="smc-agent-id">{html.escape(agent_id)}</div>'
+            f'<div class="smc-agent-title">{html.escape(title)}</div></div></div>'
+            f'<div class="smc-agent-description">{html.escape(detail)}</div>'
+            f'<div class="smc-agent-role">{html.escape(role.upper())}</div>'
+            '</article>'
+        )
+    cards.append("</div>")
+    st.markdown("".join(cards), unsafe_allow_html=True)
 
     st.markdown("### Interactive demo · What happens during a stock shortage?")
     with st.container(border=True):
