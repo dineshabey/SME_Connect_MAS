@@ -113,6 +113,32 @@ def render_results_markdown(batch: dict) -> str:
     return "\n".join(lines)
 
 
+def render_completed_report(batch: dict, *, template: str) -> str:
+    """Insert measured synthetic results into a separate, reviewable report copy."""
+    opening = "<!-- PHASE05_RESULTS_START -->"
+    closing = "<!-- PHASE05_RESULTS_END -->"
+    if template.count(opening) != 1 or template.count(closing) != 1:
+        raise ValueError("Report template is missing unique evidence markers.")
+    before, remaining = template.split(opening, 1)
+    _, after = remaining.split(closing, 1)
+    section = render_results_markdown(batch)
+    section = section.replace(
+        "# Verified-by-execution synthetic evaluation output",
+        "### 6.1 Measured synthetic evaluation (local execution)",
+    ).replace("## Results by market scenario", "#### Results by market scenario"
+    ).replace("## Messages and negotiation rounds", "#### Messages and negotiation rounds"
+    ).replace("## Interpretation boundaries", "#### Interpretation boundaries"
+    ).replace("## Reporting instruction", "#### Reporting instruction")
+    completed = before + section + after
+    return completed.replace(
+        "## 6. Results — Verification Required",
+        "## 6. Results — Locally Measured Synthetic Simulation",
+    ).replace(
+        "replace the results placeholders with verified local experiment outputs before submission.",
+        "contains results generated from a local synthetic simulation; review pytest and provenance before submission.",
+    )
+
+
 def export_evidence(out_dir: Path, *, batch: dict | None = None) -> dict[str, Path]:
     """Write reviewable evidence files only inside an explicit local output directory."""
     output = Path(out_dir)
@@ -143,6 +169,7 @@ def export_evidence(out_dir: Path, *, batch: dict | None = None) -> dict[str, Pa
         "csv": output / "phase05_trials.csv",
         "json": output / "phase05_summary.json",
         "markdown": output / "RESULTS_FOR_REPORT.md",
+        "report": output / "FINAL_REPORT_WITH_RESULTS.md",
     }
     with paths["csv"].open("w", encoding="utf-8-sig", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(trials[0]))
@@ -153,6 +180,13 @@ def export_evidence(out_dir: Path, *, batch: dict | None = None) -> dict[str, Pa
         encoding="utf-8",
     )
     paths["markdown"].write_text(render_results_markdown(batch), encoding="utf-8")
+    template_path = Path(__file__).resolve().parents[2] / "docs" / "FINAL_ASSIGNMENT_REPORT.md"
+    if not template_path.is_file():
+        raise FileNotFoundError(f"Report template missing: {template_path}")
+    completed = render_completed_report(
+        batch, template=template_path.read_text(encoding="utf-8"),
+    )
+    paths["report"].write_text(completed, encoding="utf-8")
     return paths
 
 
