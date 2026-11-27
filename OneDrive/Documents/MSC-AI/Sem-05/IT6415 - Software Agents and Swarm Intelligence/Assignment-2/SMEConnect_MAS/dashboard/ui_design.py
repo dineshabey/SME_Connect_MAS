@@ -18,6 +18,7 @@ PAGES = (
     "🏪 Seller Decision Lab",
     "🛒 Retailer Decision Lab",
     "🎓 Viva Presentation",
+    "⚡ Workflow Simulator",
 )
 
 PAGE_METADATA = {
@@ -31,6 +32,7 @@ PAGE_METADATA = {
     PAGES[7]: ("Seller decision lab", "Evaluate a single offer using an independent seller policy."),
     PAGES[8]: ("Retailer decision lab", "Inspect affordability and utility constraints on a retailer's offer."),
     PAGES[9]: ("Viva presentation mode", "An English-only, step-by-step demonstration of real MAS decisions and evidence."),
+    PAGES[10]: ("Interactive MAS workflow simulator", "Configure a marketplace scenario, replay recorded agent interactions and inspect the final synthetic outcome."),
 }
 
 CSS = """
@@ -320,7 +322,7 @@ def show_sidebar() -> str:
             ("WORKSPACE", (0, 1)),
             ("AGENT WORKFLOWS", (2, 3, 4, 5)),
             ("LEARNING LABS", (6, 7, 8)),
-            ("PRESENTATION", (9,)),
+            ("PRESENTATION", (9, 10)),
         )
         for group, indices in groups:
             st.markdown(
