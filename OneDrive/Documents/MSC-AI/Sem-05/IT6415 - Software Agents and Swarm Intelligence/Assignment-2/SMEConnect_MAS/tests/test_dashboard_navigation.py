@@ -12,7 +12,7 @@ PROJECT = Path(__file__).resolve().parents[1]
 
 
 def test_all_workspaces_have_distinct_navigation_names_and_descriptions():
-    assert len(PAGES) == 10
+    assert len(PAGES) == 11
     assert len(set(PAGES)) == len(PAGES)
     assert set(PAGE_METADATA) == set(PAGES)
     assert all(len(title) > 5 and len(description) > 25
@@ -145,3 +145,69 @@ def test_viva_evaluation_uses_projector_readable_evidence_cards():
     evaluation = source.split("def _evaluation():", 1)[1].split("RENDER =", 1)[0]
     assert "st.dataframe(" not in evaluation
     assert "_presentation_table([" in evaluation
+
+
+def test_interactive_workflow_simulator_is_a_real_routed_workspace():
+    theme = (PROJECT / "dashboard" / "ui_design.py").read_text(encoding="utf-8")
+    app = (PROJECT / "dashboard" / "app.py").read_text(encoding="utf-8")
+    simulator = (PROJECT / "dashboard" / "workflow_simulator.py").read_text(encoding="utf-8")
+    ast.parse(simulator)
+    assert '"⚡ Workflow Simulator"' in theme
+    assert 'if selected_page == PAGES[10]:' in app
+    assert 'render_workflow_simulator()' in app
+    for marker in (
+        "st.form(", "st.form_submit_button(",
+        "run_supplier_competition(", "run_delivery_coordination(",
+        "ReservationLedger.from_marketplace()", "neon_scene(",
+        "st.session_state", "time.sleep(", "wf_index",
+        "Play to final outcome", "Final multi-agent decision",
+    ):
+        assert marker in simulator
+
+
+def test_workflow_replay_builds_events_from_real_recordings_only():
+    from dashboard.workflow_simulator import _recorded_events, _stage_html
+
+    competition = {
+        "retailer": type("Retailer", (), {"agent_id": "R1"})(),
+        "discovered_seller_ids": ["S1"],
+        "evaluated_seller_ids": ["S1"],
+        "negotiations": {
+            "S1": {"timeline": [
+                {"sender": "R1", "receiver": "S1", "performative": "PROPOSE",
+                 "price": 150.0, "round": 1, "reason": "Actual submitted offer."},
+                {"sender": "S1", "receiver": "R1", "performative": "ACCEPT-PROPOSAL",
+                 "price": 150.0, "round": 1, "reason": "Actual seller decision."},
+            ]}
+        },
+        "selection": {"selected_seller_id": "S1", "reasoning": "Selected after evaluation."},
+    }
+    coordination = {
+        "events": [{"actor": "C1", "action": "VERIFY",
+                    "explanation": "Real coordinator verification."}],
+        "status": "RESERVED_SIMULATED", "reason": "Synthetic allocation completed.",
+    }
+    events = _recorded_events(competition, coordination)
+    assert len(events) == 6
+    assert [item["phase"] for item in events] == [
+        "Discovery", "Negotiation", "Negotiation", "Supplier selection",
+        "Delivery & reservation", "Final outcome",
+    ]
+    assert events[1]["description"] == "Actual submitted offer."
+    assert events[2]["action"] == "ACCEPT-PROPOSAL"
+    assert events[-1]["action"] == "RESERVED_SIMULATED"
+    assert "RECORDED EVENT" in _stage_html(events[0], 0, len(events))
+    assert "no real" in events[-1]["note"].lower()
+
+
+def test_workflow_scene_escapes_untrusted_values():
+    from dashboard.workflow_simulator import _stage_html
+
+    scene = _stage_html({
+        "phase": "<b>unsafe</b>", "sender": "<img src=x>",
+        "receiver": "R1", "action": "INFORM",
+        "description": "<script>alert(1)</script>", "note": "From live trace",
+    }, 0, 1)
+    assert "<script>" not in scene
+    assert "<img src=x>" not in scene
+    assert "&lt;script&gt;" in scene
