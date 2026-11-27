@@ -388,7 +388,29 @@ def test_sequence_configuration_is_live_and_run_is_independent():
 def test_sequence_iframe_accommodates_large_explanation_and_final_result():
     source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
     ast.parse(source)
-    assert 'height=1390, scrolling=False' in source
-    assert '.diagram{height:400px' in source
+    assert 'height=1600, scrolling=True' in source
+    assert 'type:"streamlit:setFrameHeight"' in source
+    assert "ResizeObserver(resizeFrame)" in source
+    assert "bootstrap@5.3.8/dist/css/bootstrap-grid.min.css" in source
+    assert 'class="row g-3 detail"' in source
+    assert 'class="col-12 col-xl-7"' in source
     assert '#decision-panel #reason{overflow-wrap:anywhere' in source
-    assert '.detail .panel{height:auto;overflow:visible}' in source
+    assert '.detail .panel{height:100%;min-height:270px;overflow:visible;overflow-wrap:anywhere}' in source
+
+
+
+def test_sequence_preview_reacts_without_executing_agent_graph():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert "def _sequence_preview_changed()" in source
+    assert 'on_change=_sequence_preview_changed' in source
+    assert 'key="seq_quantity", on_change=_sequence_preview_changed' in source
+    assert "Current request:" in source
+    assert "Opening offer received:" in source
+    assert "Expected gross margin at offer:" in source
+    assert "Agent baseline" in source
+    assert "Insufficient advertised stock" in source
+    assert "Click Run and animate agent sequence" in source
+    assert 'if run:' in source
+    assert 'run_result = _run_session(' in source
+    assert "st.form(" not in source
