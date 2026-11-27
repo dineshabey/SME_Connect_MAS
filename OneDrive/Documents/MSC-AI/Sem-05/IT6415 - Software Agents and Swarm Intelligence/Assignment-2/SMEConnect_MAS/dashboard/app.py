@@ -20,30 +20,44 @@ st.markdown(
     """
     <style>
     .block-container{max-width:100% !important;width:100% !important;padding:1.4rem clamp(1rem,2.3vw,3rem) 3rem !important}
-    /* Readable text for projector-sized, full-width demonstrations. */
-    html{font-size:18px}
-    .stApp, .stApp p, .stApp li, .stApp .stMarkdown{font-size:1.06rem;line-height:1.6}
-    .stApp h1{font-size:2.25rem}
-    .stApp h2{font-size:1.85rem}
-    .stApp h3{font-size:1.48rem}
-    .stApp [data-testid="stCaptionContainer"]{font-size:0.94rem;line-height:1.5}
-    .stApp [data-testid="stWidgetLabel"] p{font-size:1rem;font-weight:600}
-    .stApp [data-testid="stMetricLabel"] p{font-size:1rem}
-    .stApp [data-testid="stMetricValue"]{font-size:2rem}
+    /* Presentation mode: explicit pixel sizes override Streamlit's small defaults. */
+    html{font-size:20px}
+    .stApp, .stApp [data-testid="stMarkdownContainer"] p,
+    .stApp [data-testid="stMarkdownContainer"] li,
+    .stApp [data-testid="stText"]{font-size:21px !important;line-height:1.65 !important}
+    .stApp h1{font-size:40px !important;line-height:1.2 !important}
+    .stApp h2{font-size:36px !important;line-height:1.25 !important}
+    .stApp h3{font-size:30px !important;line-height:1.3 !important}
+    .stApp [data-testid="stCaptionContainer"],
+    .stApp [data-testid="stCaptionContainer"] p,
+    .stApp small{font-size:18px !important;line-height:1.55 !important}
+    .stApp [data-testid="stWidgetLabel"] p,
+    .stApp [data-testid="stMetricLabel"] p{font-size:21px !important;font-weight:650 !important}
+    .stApp [data-testid="stMetricValue"]{font-size:45px !important;line-height:1.2 !important}
+    .stApp [data-testid="stMetricValue"] *{font-size:inherit !important}
     .stApp button[kind], .stApp [data-testid="stBaseButton-secondary"],
-    .stApp [data-testid="stBaseButton-primary"]{font-size:1rem;min-height:2.75rem}
-    .stApp [data-baseweb="tab-list"]{flex-wrap:wrap;gap:0.3rem 0.65rem}
-    .stApp [data-baseweb="tab"]{font-size:1rem;padding:0.75rem 0.9rem;min-height:3rem}
-    .stApp [data-baseweb="tab"] p{font-size:1rem;white-space:normal}
-    .stApp [data-testid="stDataFrame"]{font-size:1rem}
-    @media(max-width:700px){html{font-size:16px}
-      .stApp [data-baseweb="tab"]{padding:0.55rem 0.7rem}
-      .stApp [data-testid="stMetricValue"]{font-size:1.65rem}}
+    .stApp [data-testid="stBaseButton-primary"]{font-size:21px !important;min-height:56px !important}
+    .stApp button[kind] p{font-size:21px !important}
+    .stApp [data-baseweb="tab-list"]{flex-wrap:wrap;gap:8px 12px}
+    .stApp [data-baseweb="tab"]{font-size:21px !important;padding:13px 18px !important;min-height:56px}
+    .stApp [data-baseweb="tab"] p{font-size:21px !important;white-space:normal}
+    .stApp [data-baseweb="input"] input,
+    .stApp [data-baseweb="select"]{font-size:20px !important}
+    .stApp [data-testid="stDataFrame"]{font-size:19px}
+    @media(max-width:750px){
+      html{font-size:17px}
+      .stApp [data-testid="stMarkdownContainer"] p,
+      .stApp [data-testid="stMarkdownContainer"] li{font-size:17px !important}
+      .stApp [data-testid="stCaptionContainer"] p{font-size:15px !important}
+      .stApp [data-testid="stMetricValue"]{font-size:32px !important}
+      .stApp [data-baseweb="tab"]{padding:9px 11px !important}
+      .stApp [data-baseweb="tab"] p{font-size:16px !important}
+    }
     .hero{background:linear-gradient(110deg,#142b42,#136b73);border:1px solid #328a93;
       padding:23px 26px;border-radius:17px;color:#f5fafc;margin-bottom:14px}
-    .hero h2{font-size:2.15rem;color:white;margin:0 0 7px}
-    .hero p{font-size:1.08rem;margin:0;color:#d7e7f0}
-    .eyebrow{font-size:0.92rem;font-weight:700;letter-spacing:.08em;color:#70d5d6}
+    .hero h2{font-size:42px !important;color:white;margin:0 0 7px}
+    .hero p{font-size:22px !important;margin:0;color:#d7e7f0}
+    .eyebrow{font-size:18px;font-weight:700;letter-spacing:.08em;color:#70d5d6}
     .guide{padding:14px 18px;border:1px solid #39536f;border-radius:12px;
       background:#14283b;color:#e8f1f9;margin:12px 0}
     .guide b{color:#b8f2f2}
