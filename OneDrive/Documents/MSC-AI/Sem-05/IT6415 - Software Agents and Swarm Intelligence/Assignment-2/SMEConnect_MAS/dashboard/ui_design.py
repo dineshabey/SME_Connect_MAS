@@ -48,16 +48,30 @@ section[data-testid="stSidebar"] {
     border-right:1px solid #2b4257;
     min-width: 275px;
 }
-section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p { font-size:18px !important; }
-section[data-testid="stSidebar"] [role="radiogroup"] label {
-    padding: .52rem .6rem;
-    border-radius: .65rem;
-    margin-bottom: .13rem;
+section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {font-size:18px!important}
+section[data-testid="stSidebar"] {min-width:310px!important;}
+.smc-menu-group{font-size:12px;font-weight:850;letter-spacing:.13em;
+    color:#7eaabd;margin:17px 4px 8px;text-transform:uppercase;}
+section[data-testid="stSidebar"] [class*="st-key-smc_nav_"] button{
+    width:100%;min-height:54px;text-align:left;justify-content:flex-start;
+    border:1px solid transparent;border-radius:13px;padding:12px 15px;
+    background:transparent;color:#bdcede;font-size:18px;font-weight:650;
+    box-shadow:none;transition:background .15s ease,border-color .15s ease;
 }
-section[data-testid="stSidebar"] [role="radiogroup"] label:hover {
-    background:rgba(78,160,186,.11);
+section[data-testid="stSidebar"] [class*="st-key-smc_nav_"] button p{
+    font-size:18px!important;line-height:1.4;text-align:left;white-space:normal;
 }
-section[data-testid="stSidebar"] [role="radiogroup"] label p {font-size:17px !important;}
+section[data-testid="stSidebar"] [class*="st-key-smc_nav_"] button:hover{
+    background:#1c3b4e;border-color:#3c6e82;color:#fff;
+}
+section[data-testid="stSidebar"] [class*="st-key-smc_nav_"] button[kind="primary"]{
+    background:linear-gradient(105deg,#1b5a66,#1c4e65)!important;
+    border:1px solid #4aa6b3!important;color:#fff!important;
+    box-shadow:inset 4px 0 #76e3d5,0 5px 14px rgba(0,0,0,.2)!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-smc_nav_"] button:focus-visible{
+    outline:2px solid #78ecde;outline-offset:2px;
+}
 .stApp [data-testid="stMarkdownContainer"] p,
 .stApp [data-testid="stMarkdownContainer"] li {font-size:19px;line-height:1.6;}
 .stApp h1 {font-size:clamp(2rem,2.7vw,2.7rem);line-height:1.16;}
@@ -278,22 +292,52 @@ def apply_theme():
 
 
 def navigate_to(page: str):
-    """Run as an on_click callback before Streamlit re-instantiates its radio."""
+    """Switch workspace before the sidebar buttons are re-rendered."""
     if page not in PAGES:
         raise ValueError("Unknown navigation destination.")
     st.session_state["nav_page"] = page
 
 
 def show_sidebar() -> str:
+    """Use real Streamlit buttons, not radio inputs or noninteractive HTML links."""
+    if st.session_state.get("nav_page") not in PAGES:
+        st.session_state["nav_page"] = PAGES[0]
+    selected = st.session_state["nav_page"]
     with st.sidebar:
-        st.markdown('<div class="smc-brand">◈ SME<span>Connect</span> AI</div>', unsafe_allow_html=True)
-        st.markdown('<p class="smc-sidebar-caption">MULTI-AGENT MARKETPLACE<br>ACADEMIC SIMULATION</p>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="smc-brand">◈ SME<span>Connect</span> AI</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<p class="smc-sidebar-caption">MULTI-AGENT MARKETPLACE'
+            '<br>ACADEMIC SIMULATION</p>',
+            unsafe_allow_html=True,
+        )
         st.divider()
-        page = st.radio("WORKSPACE", PAGES, label_visibility="collapsed", key="nav_page")
+        groups = (
+            ("WORKSPACE", (0, 1)),
+            ("AGENT WORKFLOWS", (2, 3, 4, 5)),
+            ("LEARNING LABS", (6, 7, 8)),
+        )
+        for group, indices in groups:
+            st.markdown(
+                f'<div class="smc-menu-group">{html.escape(group)}</div>',
+                unsafe_allow_html=True,
+            )
+            for index in indices:
+                page = PAGES[index]
+                st.button(
+                    page,
+                    key=f"smc_nav_{index}",
+                    type="primary" if selected == page else "secondary",
+                    use_container_width=True,
+                    on_click=navigate_to,
+                    args=(page,),
+                )
         st.divider()
         st.caption("MSc IT6415 · Software Agents & Swarm Intelligence")
         st.caption("Synthetic data · Local execution · No real orders")
-    return page
+    return selected
 
 
 def show_header(page: str):
