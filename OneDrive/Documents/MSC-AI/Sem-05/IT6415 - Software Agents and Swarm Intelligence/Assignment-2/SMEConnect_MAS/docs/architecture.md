@@ -119,3 +119,35 @@ python -m py_compile smeconnect/environment/market_state.py smeconnect/environme
 python -m pytest -q
 python -m streamlit run dashboard/app.py
 ```
+
+## Phase 05.2 — Reproducible experimental evaluation
+
+`smeconnect/simulation/experiment_evaluation.py` runs a bounded, deterministic **factorial grid** of paired counterfactual market simulations using the existing Phase 05.1 `run_market_experiment()`. Each pair repeats the exact same order quantity, first offer, preferred price and round limit, changing only the synthetic market scenario.
+
+Default evaluation: three shocks (`s2_shortage`, `price_pressure`, `demand_surge`), two quantities (100 and 200 packets), three initial offers (Rs.140, Rs.150 and Rs.160), retailer R1, target Rs.150, maximum five rounds. Thus **18 paired comparisons / 36 supplier-selection runs**, each with up to two independent seller negotiation conversations. Maximum 36 pairs to bound execution. This is a deterministic parameter sweep: it is **not** a statistical random sample and no random seed is needed. Conversation UUIDs do not enter aggregate outcomes.
+
+### Measurement definitions
+
+- **Supplier selection rate:** paired-trial sides with any selected supplier / total trials.
+- **Supplier switch rate:** count of paired trials where selected seller ID differs before versus after / total pairs, including transitions to or from no agreement.
+- **Expected gross profit:** average scenario-model gross profit over all trials; zero for no supplier. The synthetic gross profit excludes delivery fees and overhead.
+- **Average selected unit price:** mean price over trials that resulted in a selection only; undefined (`None`) when there were no selections.
+- **Average message volume:** count of actual seller/retailer negotiation bus messages from both seller conversations per side, divided by trial count; excludes M1 informational signal.
+- **Average negotiation rounds:** sum of per-seller negotiation rounds per trial, averaged over trials. This is not wall-clock runtime or simultaneous execution.
+- **Seller agreement rate:** individual seller negotiation conversations with `AGREED` / all seller negotiations.
+
+`dashboard/experiment_evaluation_viz.py` adds **🧪 Phase 05.2 · Experiments**, with experiment-grid controls, measured summary cards, per-scenario comparison, a bar chart, individual trial inspection, and downloadable CSV / JSON derived only from public outcomes and aggregated diagnostics.
+
+### Scientific limitations and reproducibility
+
+This is **controlled synthetic simulation evidence**, not proof of real-market accuracy, online policy learning or emergent self-organization. Scenario inputs and agent policies are predefined. Runs do not mutate the Phase 04 session reservation ledger or initiate orders. Re-running the same grid should return identical aggregate metrics, although randomly generated conversation IDs would differ outside the exported metrics.
+
+No production agent authentication, concurrent booking, persistent storage or real-time market feeds are included.
+
+Local verification:
+
+```powershell
+python -m py_compile smeconnect/simulation/experiment_evaluation.py dashboard/experiment_evaluation_viz.py dashboard/app.py
+python -m pytest -q
+python -m streamlit run dashboard/app.py
+```
