@@ -130,3 +130,18 @@ def test_viva_presentation_typography_large_enough_for_projector():
     assert "min-height:145px" in source          # Large architecture cards
     assert "font-size:46px!important" in source  # Numerical metrics
     assert "@media(max-width:850px)" in source   # Preserve mobile usability
+
+
+def test_viva_evaluation_uses_projector_readable_evidence_cards():
+    source = (PROJECT / "dashboard" / "viva_mode.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert "def _presentation_table(" in source
+    assert "viva-feature-grid" in source
+    assert "viva-feature-card" in source
+    assert "viva-feature-title" in source
+    assert "font-size:28px!important" in source
+    assert "viva-table" in source
+    assert "html.escape(str(value), quote=True)" in source
+    evaluation = source.split("def _evaluation():", 1)[1].split("RENDER =", 1)[0]
+    assert "st.dataframe(" not in evaluation
+    assert "_presentation_table([" in evaluation
