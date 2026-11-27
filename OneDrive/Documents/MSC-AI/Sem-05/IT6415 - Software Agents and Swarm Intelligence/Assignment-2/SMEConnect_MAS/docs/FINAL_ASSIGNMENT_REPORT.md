@@ -198,7 +198,7 @@ Record Python version, package versions, revision/commit identifier, test result
 <!-- PHASE05_RESULTS_START -->
 **Status at report drafting:** The experimental evaluation runner is implemented and synthetic scenario outcomes can be generated. **Complete aggregate results have not been independently executed and verified in this report-writing environment.** Do not submit placeholder values as measured outcomes.
 
-After the local evidence export runs, copy the generated `evaluation_output/RESULTS_FOR_REPORT.md` section here.
+After the local evidence export runs, inspect `evaluation_output/RESULTS_FOR_REPORT.md`. The exporter also produces a separate `evaluation_output/FINAL_REPORT_WITH_RESULTS.md` with these placeholder values automatically replaced by executed synthetic results. Verify that report against the test output before submitting.
 
 | Metric | Normal market | Changed market | Difference |
 |---|---:|---:|---:|
