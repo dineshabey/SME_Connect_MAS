@@ -159,3 +159,19 @@ A repository-level GitHub Actions workflow, [`phase05-verification.yml`](https:/
 On a **successful** workflow run, open the repository **Actions** page → **SMEConnect MSc Phase 05.3 verification** → latest run → download the **`smeconnect-phase05-evidence`** artifact. It contains the CSV, JSON, report-ready tables and `FINAL_REPORT_WITH_RESULTS.md`. A workflow committed to GitHub is *not* evidence of passing tests: only the actual completed run log and uploaded artifact verify completion.
 
 If Actions is disabled or no run appears, execute the same tests and exporter locally using the commands above. Do not report CI as passed before inspecting its result.
+
+### Phase 06.1 — Professor Demo overview and clearer navigation
+
+The first dashboard tab, **🎓 Professor Demo**, now provides a native Streamlit introduction to seven agents, a conceptual network, and an ordered demonstration route through Marketplace, Phase 03 competition, Phase 04 delivery, Phase 05.1 market adaptation, and Phase 05.2 experiments. The **one-click stock-shortage demonstration** invokes the same `run_market_experiment()` controller as Phase 05.1 and displays *actual* before/after supplier decisions and message traces. The overview does not make business decisions or fake messages.
+
+To review it after the latest pull:
+
+```powershell
+git pull origin main
+python -m py_compile dashboard/app.py dashboard/overview_viz.py smeconnect/simulation/export_evidence.py
+python -m pytest -q
+python -m smeconnect.simulation.export_evidence --out-dir evaluation_output
+python -m streamlit run dashboard/app.py
+```
+
+**Phase 06 remains incremental:** the new overview does not yet replace the existing negotiation, delivery, market and experiment tab interfaces. Review presentation legibility and the generated report before preparing final screenshots.
