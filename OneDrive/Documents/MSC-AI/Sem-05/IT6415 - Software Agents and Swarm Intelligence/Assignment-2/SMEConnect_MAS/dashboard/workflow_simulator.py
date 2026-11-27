@@ -317,6 +317,7 @@ def render_workflow_simulator():
                 st.session_state["wf_run"] = run
                 st.session_state["wf_index"] = 0
                 st.session_state["wf_speed"] = speed
+                st.session_state["wf_autoplay"] = True
             except (ValueError, RuntimeError, KeyError) as exc:
                 st.error(f"Workflow failed: {exc}")
     run = st.session_state.get("wf_run")
@@ -354,6 +355,16 @@ def render_workflow_simulator():
         st.rerun()
     if restart.button("↺ Replay from start", use_container_width=True):
         st.session_state["wf_index"] = 0
+        st.rerun()
+    # A single Run click automatically begins replay. The simulation is already
+    # complete; every animated frame is a real recorded result, not a new action.
+    if st.session_state.pop("wf_autoplay", False):
+        pause = {"Slow":1.1,"Normal":0.6,"Fast":0.25}[st.session_state.get("wf_speed","Normal")]
+        for i in range(len(events)):
+            with stage.container():
+                _display_step(run, i)
+            time.sleep(pause)
+        st.session_state["wf_index"] = len(events)-1
         st.rerun()
     st.markdown("### 3 · Examine the MAS evidence")
     st.markdown(
