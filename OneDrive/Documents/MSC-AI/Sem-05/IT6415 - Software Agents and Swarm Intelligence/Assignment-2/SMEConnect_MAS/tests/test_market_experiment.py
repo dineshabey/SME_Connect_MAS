@@ -78,3 +78,11 @@ def test_market_messages_are_typed_and_separate_from_negotiation():
     assert market.conversation_id.startswith("MARKET-")
     assert market.conversation_id != result["changed"]["negotiations"]["S1"]["conversation_id"]
     assert all("minimum_price" not in record for record in result["after"]["offers"])
+
+
+def test_snapshot_mappings_are_immutable():
+    snap = market_snapshot("s2_shortage")
+    with pytest.raises(TypeError):
+        snap.seller_stock["S2"] = 999
+    assert snap.seller_stock["S2"] == 100
+    assert {a.agent_id: a for a in build_agents()}["S2"].available_stock == 300
