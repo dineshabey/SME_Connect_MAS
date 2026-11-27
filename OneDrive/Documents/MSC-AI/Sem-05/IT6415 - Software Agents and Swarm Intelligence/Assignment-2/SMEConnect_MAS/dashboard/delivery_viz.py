@@ -2,7 +2,6 @@
 
 Displays only outcomes returned by existing simulation and session ledger.
 """
-import html
 import streamlit as st
 
 from smeconnect.environment.marketplace import build_agents
@@ -78,7 +77,7 @@ def _milestones(events, outcome):
          bool(seller),
          f"{seller} was selected through negotiation." if seller else "No feasible supplier."),
         ("📦", "Stock checked",
-         any(e["action"] == "VERIFY" for e in events) and status != "STOCK_UNAVAILABLE",
+         any(e["actor"] == "C1" and e["action"] == "CFP" for e in events),
          "Coordinator checks unreserved stock." if seller else "Waiting for agreement."),
         ("🚚", "Delivery evaluated",
          ("D1", "PROPOSE") in actions,
