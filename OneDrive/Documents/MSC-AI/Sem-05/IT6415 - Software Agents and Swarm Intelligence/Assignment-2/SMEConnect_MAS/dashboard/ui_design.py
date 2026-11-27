@@ -118,6 +118,92 @@ section[data-testid="stSidebar"] [role="radiogroup"] label p {font-size:17px !im
 .smc-tag {color:#8adccf;font-size:14px;font-weight:750;letter-spacing:.05em;}
 .smc-step {border-left:3px solid #4cbfc0;padding:12px 16px;margin:8px 0;background:rgba(60,120,155,.10);border-radius:0 10px 10px 0;}
 .smc-step strong{font-size:18px;}
+/* Overview redesign: dimensional KPI cards and visual identity for every agent. */
+.smc-overview-intro{
+    display:flex;justify-content:space-between;align-items:center;gap:24px;
+    padding:12px 0 18px;flex-wrap:wrap;
+}
+.smc-overview-intro h2{margin:0!important;font-size:32px!important}
+.smc-overview-intro p{color:#aec6d7;margin:5px 0 0;font-size:18px!important}
+.smc-overview-pill{
+    border:1px solid #3b777d;background:#143b43;color:#9bf1dc;
+    border-radius:999px;padding:9px 15px;font-size:15px;font-weight:750;
+}
+.smc-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;margin:6px 0 28px;}
+.smc-kpi-card{
+    position:relative;isolation:isolate;overflow:hidden;min-height:210px;
+    padding:24px 25px 22px;border-radius:22px;
+    background:linear-gradient(145deg,#162d42 0%,#193c50 100%);
+    border:1px solid rgba(128,194,224,.38);
+    box-shadow:0 17px 32px rgba(1,7,17,.3),inset 0 1px 0 rgba(255,255,255,.10);
+    transform:translateY(0);transition:transform .22s ease,box-shadow .22s ease;
+}
+.smc-kpi-card:hover{transform:translateY(-5px);box-shadow:0 23px 44px rgba(0,0,0,.39);}
+.smc-kpi-card::before{
+    content:"";position:absolute;inset:-50% -30% auto auto;width:90%;height:115%;
+    transform:rotate(28deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.065),transparent);
+    pointer-events:none;z-index:-1;
+}
+.smc-kpi-card::after{
+    content:"";position:absolute;right:-25px;bottom:-70px;width:165px;height:165px;
+    border-radius:50%;background:var(--kpi-glow,rgba(74,203,219,.17));filter:blur(9px);z-index:-1;
+}
+.smc-kpi-card.smc-green{background:linear-gradient(145deg,#173b43,#14524d);--kpi-glow:rgba(77,234,170,.20)}
+.smc-kpi-card.smc-blue{background:linear-gradient(145deg,#1b2c4b,#244a75);--kpi-glow:rgba(109,163,255,.23)}
+.smc-kpi-card.smc-purple{background:linear-gradient(145deg,#292c52,#473b69);--kpi-glow:rgba(190,142,251,.22)}
+.smc-kpi-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;}
+.smc-kpi-label{font-size:21px!important;font-weight:750;color:#f0f8ff;line-height:1.35;}
+.smc-kpi-icon{display:grid;place-items:center;width:53px;height:53px;border-radius:16px;
+    background:rgba(255,255,255,.12);font-size:27px;flex-shrink:0;}
+.smc-kpi-value{font-size:70px!important;line-height:1.12;font-weight:850;letter-spacing:-.055em;color:#fff;margin:8px 0;}
+.smc-kpi-detail{font-size:16px!important;color:#d1e4ef;line-height:1.45;}
+.smc-agent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin:10px 0 30px;}
+.smc-agent-card{
+    position:relative;overflow:hidden;min-height:210px;padding:24px;
+    border-radius:21px;border:1px solid rgba(126,187,213,.31);
+    background:linear-gradient(140deg,#18384b,#174856);
+    box-shadow:0 14px 30px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.10);
+    transition:transform .22s ease,box-shadow .22s ease;
+}
+.smc-agent-card:hover{transform:translateY(-4px);box-shadow:0 20px 39px rgba(0,0,0,.36);}
+.smc-agent-card::after{content:"";position:absolute;right:-42px;bottom:-60px;width:175px;height:175px;
+    border-radius:50%;background:rgba(84,220,222,.13);filter:blur(1px);}
+.smc-agent-card.retailer{background:linear-gradient(145deg,#182e4b,#284b77);}
+.smc-agent-card.retailer::after{background:rgba(113,158,255,.18)}
+.smc-agent-card.delivery{background:linear-gradient(145deg,#29284d,#4b3c73);}
+.smc-agent-card.delivery::after{background:rgba(176,125,244,.18)}
+.smc-agent-card.market{background:linear-gradient(145deg,#203c37,#255c53);}
+.smc-agent-card.market::after{background:rgba(86,220,154,.18)}
+.smc-agent-card.coordinator{background:linear-gradient(145deg,#473227,#664f36);}
+.smc-agent-card.coordinator::after{background:rgba(242,179,109,.18)}
+.smc-agent-upper{display:flex;align-items:center;gap:16px;position:relative;z-index:1;}
+.smc-agent-avatar{width:64px;height:64px;display:grid;place-items:center;flex-shrink:0;
+    background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.16);border-radius:19px;font-size:34px;}
+.smc-agent-id{font-size:25px!important;font-weight:800;line-height:1.2;color:white;}
+.smc-agent-title{font-size:17px!important;color:#d7e8f1;margin-top:3px;}
+.smc-agent-description{font-size:18px!important;line-height:1.5;color:#e0edf4;margin:20px 0 14px;position:relative;z-index:1;}
+.smc-agent-role{display:inline-flex;font-size:14px!important;font-weight:800;letter-spacing:.08em;
+    border:1px solid rgba(255,255,255,.23);border-radius:999px;padding:7px 13px;
+    color:#f1fbff;background:rgba(255,255,255,.09);position:relative;z-index:1;}
+.smc-section-title{font-size:30px!important;font-weight:800;letter-spacing:-.02em;margin:18px 0 16px;}
+.smc-mini-step{display:flex;align-items:flex-start;gap:13px;border-radius:14px;
+    background:rgba(36,73,94,.35);padding:15px;margin-bottom:14px;}
+.smc-mini-number{min-width:40px;height:40px;display:grid;place-items:center;
+    background:#245868;border-radius:12px;font-size:17px;font-weight:800;color:#dbfefe;}
+.smc-mini-title{font-size:19px!important;font-weight:750;color:#f4fbff}
+.smc-mini-copy{font-size:16px!important;color:#b7ccdb;margin-top:4px}
+@media(max-width:1280px){
+    .smc-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .smc-agent-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:760px){
+    .smc-kpi-grid,.smc-agent-grid{grid-template-columns:1fr;}
+    .smc-kpi-card{min-height:155px;padding:20px;}
+    .smc-kpi-label{font-size:19px!important}
+    .smc-kpi-value{font-size:53px!important}
+    .smc-agent-card{min-height:165px;}
+    .smc-agent-id{font-size:22px!important}
+}
 /* Legacy negotiation cards remain functional but more readable. */
 .guide {padding:16px 20px;border:1px solid #3b5b70;border-radius:12px;background:#173044;}
 .guide b{color:#b8f2f2;}
