@@ -226,7 +226,7 @@ def test_animated_sequence_is_routed_and_uses_real_workflow_data():
     for item in (
         "def _sequence_events(", "def _sequence_html(", "_run_session(",
         'components.html(', 'msg.performative.value', 'msg.sender', 'msg.receiver',
-        'st.form_submit_button(', 'Play', 'Pause', 'Show final result',
+        'st.button(', 'Play', 'Pause', 'Show final result',
     ):
         assert item in src
 
@@ -369,3 +369,26 @@ def test_sequence_technical_evidence_uses_large_escaped_tables():
     assert "font-size:20px!important" in source
     assert "font-size:19px!important" in source
     assert 'st.dataframe(result["sequence_events"]' not in source
+
+
+def test_sequence_configuration_is_live_and_run_is_independent():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert 'with st.form("sequence_config")' not in source
+    assert '"Live scenario preview"' in source
+    assert '"seq_quantity"' in source
+    assert '"seq_retailer"' in source
+    assert '"seq_sellers"' in source
+    assert 'disabled=not can_run' in source
+    assert 'quantity_ok = quantity <= buyer.demand' in source
+    assert 'run = st.button(' in source
+    assert 'if run:' in source
+
+
+def test_sequence_iframe_accommodates_large_explanation_and_final_result():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert 'height=1390, scrolling=False' in source
+    assert '.diagram{height:400px' in source
+    assert '#decision-panel #reason{overflow-wrap:anywhere' in source
+    assert '.detail .panel{height:auto;overflow:visible}' in source
