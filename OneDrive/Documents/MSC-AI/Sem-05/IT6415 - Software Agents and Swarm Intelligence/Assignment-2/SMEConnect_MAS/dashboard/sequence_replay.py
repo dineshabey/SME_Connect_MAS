@@ -119,7 +119,7 @@ def _sequence_html(events: list[dict], actors: list[str], summary: dict,
 :root{color-scheme:dark;--ink:#eaf6fc;--muted:#acc5d6;--teal:#69ebd8;--line:#4d7490}
 *{box-sizing:border-box}
 body{margin:0;background:#0e1a2c;color:var(--ink);font:21px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
-.shell{background:linear-gradient(140deg,#11243b,#12364b);border:1px solid #3c7591;border-radius:20px;padding:20px;min-height:840px}
+.shell{background:linear-gradient(140deg,#11243b,#12364b);border:1px solid #3c7591;border-radius:20px;padding:22px;min-height:0}
 .top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
 h1{margin:0;font-size:36px;letter-spacing:-.02em}
 .sub{color:#c7dce8;font-size:22px}
@@ -132,7 +132,7 @@ button.primary{background:#1b746f;border-color:#74dcd2}
 button:disabled{opacity:.4;cursor:not-allowed}
 button:focus-visible{outline:3px solid #d6fff0;outline-offset:2px}
 .counter{font-size:23px;color:#aef9e9;font-weight:800;margin:3px 0}
-.diagram{height:488px;overflow:auto;border:1px solid #44687f;border-radius:16px;background:
+.diagram{height:400px;overflow:auto;border:1px solid #44687f;border-radius:16px;background:
 radial-gradient(circle at 50% 20%,#163a54,#0d1e34);scroll-behavior:smooth}
 svg{display:block;width:100%;min-width:720px}
 .detail{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.45fr);gap:18px;margin-top:20px;align-items:stretch}
@@ -146,15 +146,20 @@ box-shadow:0 10px 26px #06182777}
 .explain-extra{border-top:1px solid #4d8795;margin-top:18px;padding-top:16px}
 .explain-extra strong{font-size:19px;color:#a0f6e6}
 #impact{font-size:22px!important;color:#e0f2f4;line-height:1.6}
-.final{margin-top:14px;padding:18px 21px;border:1px solid #5dbaaa;border-radius:15px;
+.final{margin-top:20px;padding:23px 26px;border:2px solid #5dbaaa;border-radius:17px;
 background:linear-gradient(110deg,#174f4d,#173c52)}
 .final h2{margin:0 0 10px;font-size:31px}
 .stats{display:flex;gap:18px;flex-wrap:wrap}
 .stat{min-width:150px;flex:1;padding:10px;background:#ffffff10;border-radius:10px}
 .stat span{display:block;color:#c6e2ec;font-size:20px}.stat b{display:block;font-size:30px}
 .small{font-size:18px!important;color:#c3dce7!important;line-height:1.5!important}
+/* The explanation must stay fully visible inside Streamlit's fixed iframe. */
+.detail .panel{height:auto;overflow:visible}
+#decision-panel #reason{overflow-wrap:anywhere;white-space:normal}
+.final p{font-size:21px;line-height:1.6}
+
 @media(max-width:850px){.detail{grid-template-columns:1fr}.shell{padding:13px}h1{font-size:22px}
-.diagram{height:450px}button{font-size:18px;padding:10px 13px}.panel p{font-size:20px}.panel h2{font-size:24px}}
+.diagram{height:360px}button{font-size:18px;padding:10px 13px}.panel p{font-size:20px}.panel h2{font-size:24px}}
 @media(prefers-reduced-motion:reduce){.diagram{scroll-behavior:auto}}
 </style></head>
 <body><main class="shell">
@@ -504,7 +509,7 @@ def render_sequence_replay():
     components.html(
         _sequence_html(result["sequence_events"], lifelines, summary,
                        result["sequence_speed"]),
-        height=905, scrolling=False,
+        height=1390, scrolling=False,
     )
     with st.expander("Technical evidence — actual messages and decision logs"):
         _large_evidence_table(
