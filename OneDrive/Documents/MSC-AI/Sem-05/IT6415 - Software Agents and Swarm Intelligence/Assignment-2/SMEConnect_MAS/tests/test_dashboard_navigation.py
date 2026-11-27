@@ -375,7 +375,7 @@ def test_sequence_configuration_is_live_and_run_is_independent():
     source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
     ast.parse(source)
     assert 'with st.form("sequence_config")' not in source
-    assert '"Live scenario preview"' in source
+    assert 'st.markdown("### Live scenario preview")' in source
     assert '"seq_quantity"' in source
     assert '"seq_retailer"' in source
     assert '"seq_sellers"' in source
