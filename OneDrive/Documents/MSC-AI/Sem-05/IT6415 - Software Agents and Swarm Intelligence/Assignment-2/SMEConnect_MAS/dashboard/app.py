@@ -20,11 +20,30 @@ st.markdown(
     """
     <style>
     .block-container{max-width:100% !important;width:100% !important;padding:1.4rem clamp(1rem,2.3vw,3rem) 3rem !important}
+    /* Readable text for projector-sized, full-width demonstrations. */
+    html{font-size:18px}
+    .stApp, .stApp p, .stApp li, .stApp .stMarkdown{font-size:1.06rem;line-height:1.6}
+    .stApp h1{font-size:2.25rem}
+    .stApp h2{font-size:1.85rem}
+    .stApp h3{font-size:1.48rem}
+    .stApp [data-testid="stCaptionContainer"]{font-size:0.94rem;line-height:1.5}
+    .stApp [data-testid="stWidgetLabel"] p{font-size:1rem;font-weight:600}
+    .stApp [data-testid="stMetricLabel"] p{font-size:1rem}
+    .stApp [data-testid="stMetricValue"]{font-size:2rem}
+    .stApp button[kind], .stApp [data-testid="stBaseButton-secondary"],
+    .stApp [data-testid="stBaseButton-primary"]{font-size:1rem;min-height:2.75rem}
+    .stApp [data-baseweb="tab-list"]{flex-wrap:wrap;gap:0.3rem 0.65rem}
+    .stApp [data-baseweb="tab"]{font-size:1rem;padding:0.75rem 0.9rem;min-height:3rem}
+    .stApp [data-baseweb="tab"] p{font-size:1rem;white-space:normal}
+    .stApp [data-testid="stDataFrame"]{font-size:1rem}
+    @media(max-width:700px){html{font-size:16px}
+      .stApp [data-baseweb="tab"]{padding:0.55rem 0.7rem}
+      .stApp [data-testid="stMetricValue"]{font-size:1.65rem}}
     .hero{background:linear-gradient(110deg,#142b42,#136b73);border:1px solid #328a93;
       padding:23px 26px;border-radius:17px;color:#f5fafc;margin-bottom:14px}
-    .hero h2{font-size:1.8rem;color:white;margin:0 0 7px}
-    .hero p{margin:0;color:#d7e7f0}
-    .eyebrow{font-size:.8rem;font-weight:700;letter-spacing:.08em;color:#70d5d6}
+    .hero h2{font-size:2.15rem;color:white;margin:0 0 7px}
+    .hero p{font-size:1.08rem;margin:0;color:#d7e7f0}
+    .eyebrow{font-size:0.92rem;font-weight:700;letter-spacing:.08em;color:#70d5d6}
     .guide{padding:14px 18px;border:1px solid #39536f;border-radius:12px;
       background:#14283b;color:#e8f1f9;margin:12px 0}
     .guide b{color:#b8f2f2}
@@ -36,11 +55,11 @@ st.markdown(
     .actor.seller{background:#21513e;border-color:#3aa784}
     .actor .emoji{font-size:32px;margin-bottom:6px}
     .actor strong{font-size:17px;display:block}
-    .actor small{color:#d8e8ed;font-size:12px;display:block;margin-top:6px}
+    .actor small{color:#d8e8ed;font-size:15px;display:block;margin-top:6px}
     .signal{text-align:center;min-height:116px;padding-top:13px}
     .signal b{display:inline-block;background:#14597a;border:1px solid #45afd0;
       padding:7px 13px;border-radius:24px;font-size:13px}
-    .signal small{display:block;margin:6px 0;color:#d6e5ed}
+    .signal small{font-size:0.92rem;display:block;margin:6px 0;color:#d6e5ed}
     .rail{height:5px;background:linear-gradient(90deg,#21c59d,#55a9f1);position:relative;margin:19px 8px 10px;border-radius:10px}
     .dot{position:absolute;top:-8px;height:20px;width:20px;border-radius:50%;
       background:#fff;border:3px solid #38bdf8;box-shadow:0 0 14px #50c2fe}
