@@ -29,38 +29,98 @@ STEPS = (
 
 VIVA_CSS = """
 <style>
-.viva-progress{display:flex;gap:5px;margin:10px 0 18px}
-.viva-progress span{height:9px;flex:1;border-radius:9px;background:#284153}
+/* Presentation-sized typography, scoped to the Viva workspace render.
+   The source overview and other labs retain their existing scale. */
+.viva-kicker{
+  color:#90ffe2;font-size:20px!important;font-weight:850;
+  letter-spacing:.10em;text-transform:uppercase;margin:9px 0 17px;
+}
+.viva-progress{display:flex;gap:8px;margin:21px 0 24px}
+.viva-progress span{height:13px;flex:1;border-radius:10px;background:#284153}
 .viva-progress span.on{background:#58d5bc}
-.viva-kicker{color:#77e7cf;font-size:16px;font-weight:850;letter-spacing:.11em;text-transform:uppercase}
-.viva-explain{background:linear-gradient(110deg,#172c41,#153d46);border:1px solid #3a7181;
-   border-radius:17px;padding:20px 24px;margin:16px 0 22px;font-size:19px;line-height:1.6}
-.viva-explain b{color:#abf4dc}
-.viva-entity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:14px 0}
-.viva-entity{background:linear-gradient(140deg,#18344b,#215569);border:1px solid #488fa7;
-    border-radius:18px;padding:24px;min-height:195px;box-shadow:0 10px 28px #040d1b55}
+.viva-explain{
+  background:linear-gradient(110deg,#172c41,#153d46);
+  border:1px solid #3a7181;border-radius:18px;padding:29px 32px;
+  margin:23px 0 27px;font-size:23px!important;line-height:1.7;
+}
+.viva-explain b{color:#abf4dc;font-size:24px!important}
+.viva-entity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:23px;margin:20px 0}
+.viva-entity{
+  background:linear-gradient(140deg,#18344b,#215569);border:1px solid #488fa7;
+  border-radius:19px;padding:32px;min-height:290px;
+  box-shadow:0 10px 28px #040d1b55
+}
 .viva-entity.retailer{background:linear-gradient(140deg,#1c3059,#274c7e)}
-.viva-entity h3{color:white;font-size:27px!important;margin:0 0 8px!important}
-.viva-entity p{font-size:19px!important;color:#d7eaf3}
-.viva-stat{font-size:28px;font-weight:800;color:white}
-.viva-muted{font-size:16px!important;color:#b8d2df}
-.viva-network{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;
-   border:1px solid #39657a;border-radius:18px;padding:24px;background:linear-gradient(125deg,#11263b,#143d4d)}
-.viva-node{text-align:center;padding:22px 12px;border:1px solid #4389a0;border-radius:13px;
-  background:#20435b;color:white;font-size:19px;font-weight:750}
-.viva-node small{display:block;color:#cce1ec;font-size:15px;font-weight:400;margin-top:5px}
-.viva-connector{grid-column:1/-1;text-align:center;color:#8ef0dc;font-size:17px;font-weight:800}
+.viva-entity h3{color:white;font-size:33px!important;margin:0 0 15px!important}
+.viva-entity p{font-size:23px!important;line-height:1.6!important;color:#d7eaf3}
+.viva-stat{font-size:40px!important;font-weight:850;color:white;margin:10px 0 4px}
+.viva-muted{font-size:21px!important;color:#d6e4ed;line-height:1.5}
+.viva-network{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:19px;
+  border:1px solid #39657a;border-radius:21px;padding:32px;
+  background:linear-gradient(125deg,#11263b,#143d4d);
+}
+.viva-node{
+  text-align:center;padding:31px 18px;border:2px solid #4389a0;
+  border-radius:17px;background:#20435b;color:white;
+  font-size:29px!important;font-weight:800;line-height:1.4;
+  min-height:145px;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  box-shadow:0 8px 19px rgba(0,0,0,.15)
+}
+.viva-node small{
+  display:block;color:#e3f1f7;font-size:22px!important;
+  font-weight:500;line-height:1.45;margin-top:9px;
+}
+.viva-connector{
+  grid-column:1/-1;text-align:center;color:#a5ffe9;
+  font-size:23px!important;line-height:1.5;font-weight:850;
+  padding:9px 8px;
+}
 .viva-focus{background:#174944;border-color:#60d4b8}
 .viva-seller{background:#245068}
 .viva-retailer{background:#2b4777}
 .viva-support{background:#383c64}
-.viva-mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.viva-mini div{border:1px solid #466a80;border-radius:12px;background:#1b3044;text-align:center;padding:15px}
-.viva-mini b{font-size:20px;color:#fff}
-.viva-mini small{display:block;font-size:14px;color:#c1d8e3}
-@media(max-width:850px){.viva-entity-grid,.viva-network{grid-template-columns:1fr}
- .viva-node,.viva-connector{grid-column:1/-1}
- .viva-mini{grid-template-columns:1fr}}
+.viva-mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.viva-mini div{border:1px solid #466a80;border-radius:13px;
+  background:#1b3044;text-align:center;padding:22px}
+.viva-mini b{font-size:27px!important;color:#fff}
+.viva-mini small{display:block;font-size:19px!important;color:#d6e7ee}
+
+/* Native Streamlit elements used by every Viva step. */
+.stApp [data-testid="stCaptionContainer"] p{font-size:20px!important;line-height:1.6!important}
+.stApp [data-testid="stMarkdownContainer"] p,
+.stApp [data-testid="stMarkdownContainer"] li{
+  font-size:22px!important;line-height:1.65!important
+}
+.stApp [data-testid="stMetricLabel"] p{font-size:22px!important}
+.stApp [data-testid="stMetricValue"]{font-size:46px!important}
+.stApp [data-testid="stWidgetLabel"] p{font-size:21px!important}
+.stApp [data-testid="stExpander"] summary{font-size:21px!important}
+.stApp button p{font-size:21px!important}
+.stApp [data-testid="stBaseButton-primary"],
+.stApp [data-testid="stBaseButton-secondary"]{min-height:59px!important}
+section[data-testid="stSidebar"] [class*="st-key-smc_nav_"] button p{
+  font-size:20px!important;
+}
+section[data-testid="stSidebar"] .smc-menu-group{font-size:15px!important}
+@media(max-width:1100px){
+  .viva-node{font-size:23px!important;min-height:125px;padding:23px 12px}
+  .viva-node small{font-size:18px!important}
+  .viva-connector{font-size:20px!important}
+  .viva-network{gap:13px;padding:19px}
+}
+@media(max-width:850px){
+  .viva-entity-grid,.viva-network{grid-template-columns:1fr}
+  .viva-node,.viva-connector{grid-column:1/-1}
+  .viva-mini{grid-template-columns:1fr}
+  .viva-node{font-size:24px!important;min-height:112px}
+  .viva-node small{font-size:18px!important}
+  .viva-explain{font-size:19px!important;padding:19px}
+  .viva-explain b{font-size:20px!important}
+  .viva-connector{font-size:17px!important}
+}
 </style>
 """
 
