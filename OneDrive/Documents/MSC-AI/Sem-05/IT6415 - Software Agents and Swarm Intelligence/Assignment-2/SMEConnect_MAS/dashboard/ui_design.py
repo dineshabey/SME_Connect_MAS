@@ -186,6 +186,41 @@ section[data-testid="stSidebar"] [role="radiogroup"] label p {font-size:17px !im
     border:1px solid rgba(255,255,255,.23);border-radius:999px;padding:7px 13px;
     color:#f1fbff;background:rgba(255,255,255,.09);position:relative;z-index:1;}
 .smc-section-title{font-size:30px!important;font-weight:800;letter-spacing:-.02em;margin:18px 0 16px;}
+/* Right-hand workflow launcher: visible, purposeful navigation rather than empty rows. */
+.smc-launch-intro{
+    font-size:17px!important;line-height:1.5;color:#b9ccdd;
+    margin:-3px 0 15px;
+}
+.smc-launch-item{display:flex;gap:16px;align-items:center;padding:5px 0 13px;}
+.smc-launch-icon{
+    width:64px;height:64px;flex-shrink:0;display:grid;place-items:center;
+    border-radius:18px;font-size:32px;
+    background:linear-gradient(145deg,#234c60,#236d72);
+    border:1px solid rgba(143,210,218,.33);box-shadow:0 7px 18px rgba(0,0,0,.22);
+}
+.smc-launch-compete .smc-launch-icon{background:linear-gradient(145deg,#35517e,#3e6c9b);}
+.smc-launch-analytics .smc-launch-icon{background:linear-gradient(145deg,#3d3e71,#6a4d8a);}
+.smc-launch-copy{min-width:0;flex:1;}
+.smc-launch-kicker{font-size:13px!important;font-weight:850;letter-spacing:.12em;color:#7de5d8;}
+.smc-launch-title{font-size:22px!important;font-weight:800;color:#f4faff;line-height:1.3;margin:3px 0 4px;}
+.smc-launch-description{font-size:16px!important;line-height:1.48;color:#c0d0df;}
+.st-key-quick_market button,
+.st-key-quick_compete button,
+.st-key-quick_experiment button{
+    min-height:49px!important;border-radius:11px!important;
+    background:#17374b!important;border:1px solid #3d7b8f!important;
+    color:#dffaff!important;font-weight:700!important;
+}
+.st-key-quick_market button:hover,
+.st-key-quick_compete button:hover,
+.st-key-quick_experiment button:hover{
+    background:#215269!important;border-color:#6cd4d3!important;
+}
+@media(max-width:760px){
+  .smc-launch-icon{width:53px;height:53px;font-size:26px;}
+  .smc-launch-title{font-size:19px!important;}
+  .smc-launch-description{font-size:15px!important;}
+}
 .smc-mini-step{display:flex;align-items:flex-start;gap:13px;border-radius:14px;
     background:rgba(36,73,94,.35);padding:15px;margin-bottom:14px;}
 .smc-mini-number{min-width:40px;height:40px;display:grid;place-items:center;
