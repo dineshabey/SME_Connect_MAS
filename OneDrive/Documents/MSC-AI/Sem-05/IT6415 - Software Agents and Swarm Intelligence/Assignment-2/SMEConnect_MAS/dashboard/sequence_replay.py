@@ -115,11 +115,12 @@ def _sequence_html(events: list[dict], actors: list[str], summary: dict,
     page = r'''<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap-grid.min.css" rel="stylesheet">
 <style>
 :root{color-scheme:dark;--ink:#eaf6fc;--muted:#acc5d6;--teal:#69ebd8;--line:#4d7490}
 *{box-sizing:border-box}
 body{margin:0;background:#0e1a2c;color:var(--ink);font:21px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
-.shell{background:linear-gradient(140deg,#11243b,#12364b);border:1px solid #3c7591;border-radius:20px;padding:22px;min-height:0}
+.shell{background:linear-gradient(140deg,#11243b,#12364b);border:1px solid #3c7591;border-radius:20px;padding:22px;min-height:0;overflow:visible}
 .top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
 h1{margin:0;font-size:36px;letter-spacing:-.02em}
 .sub{color:#c7dce8;font-size:22px}
@@ -135,7 +136,9 @@ button:focus-visible{outline:3px solid #d6fff0;outline-offset:2px}
 .diagram{height:400px;overflow:auto;border:1px solid #44687f;border-radius:16px;background:
 radial-gradient(circle at 50% 20%,#163a54,#0d1e34);scroll-behavior:smooth}
 svg{display:block;width:100%;min-width:720px}
-.detail{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.45fr);gap:18px;margin-top:20px;align-items:stretch}
+.detail{display:flex;flex-wrap:wrap;gap:0;margin-top:20px;align-items:stretch;margin-left:-9px;margin-right:-9px}
+.detail > .col-12{box-sizing:border-box;padding:0 9px;margin-bottom:18px;min-width:0;flex:0 0 100%;width:100%}
+@media(min-width:1200px){.detail>.col-xl-5{flex:0 0 41.666667%;width:41.666667%}.detail>.col-xl-7{flex:0 0 58.333333%;width:58.333333%}}
 .panel{padding:27px 29px;border:2px solid #4b8ca4;background:linear-gradient(145deg,#183a55,#1a4760);border-radius:18px;min-height:245px}
 .panel h2{font-size:29px;margin:7px 0 14px;line-height:1.35}
 .panel p{margin:9px 0;font-size:24px;line-height:1.65;color:#f0f9ff}
@@ -154,11 +157,11 @@ background:linear-gradient(110deg,#174f4d,#173c52)}
 .stat span{display:block;color:#c6e2ec;font-size:20px}.stat b{display:block;font-size:30px}
 .small{font-size:18px!important;color:#c3dce7!important;line-height:1.5!important}
 /* The explanation must stay fully visible inside Streamlit's fixed iframe. */
-.detail .panel{height:auto;overflow:visible}
+.detail .panel{height:100%;min-height:270px;overflow:visible;overflow-wrap:anywhere}
 #decision-panel #reason{overflow-wrap:anywhere;white-space:normal}
 .final p{font-size:21px;line-height:1.6}
 
-@media(max-width:850px){.detail{grid-template-columns:1fr}.shell{padding:13px}h1{font-size:22px}
+@media(max-width:850px){.shell{padding:13px}h1{font-size:24px}
 .diagram{height:360px}button{font-size:18px;padding:10px 13px}.panel p{font-size:20px}.panel h2{font-size:24px}}
 @media(prefers-reduced-motion:reduce){.diagram{scroll-behavior:auto}}
 </style></head>
@@ -174,17 +177,37 @@ background:linear-gradient(110deg,#174f4d,#173c52)}
 <button id="next">Next →</button><button id="restart">↺ Restart</button>
 <button id="end">Show final result</button></div>
 <div class="diagram" id="viewport"><svg id="sequence" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence of recorded agent interactions"></svg></div>
-<div class="detail">
-<section class="panel"><div class="kicker">CURRENT EVENT</div><h2 id="title"></h2>
-<p id="message"></p><p id="round"></p></section>
-<section class="panel" id="decision-panel" aria-live="polite">
+<div class="row g-3 detail">
+<div class="col-12 col-xl-5"><section class="panel"><div class="kicker">CURRENT EVENT</div><h2 id="title"></h2>
+<p id="message"></p><p id="round"></p></section></div>
+<div class="col-12 col-xl-7"><section class="panel" id="decision-panel" aria-live="polite">
 <div class="kicker">AGENT DECISION EXPLAINED</div><h2 id="why-title">Why did it happen?</h2>
 <p id="reason"></p><div class="explain-extra"><strong id="impact-label">What happened next?</strong>
-<p id="impact"></p></div><p class="small" id="provenance"></p></section>
+<p id="impact"></p></div><p class="small" id="provenance"></p></section></div>
 </div><section id="final" class="final" hidden></section></main>
 <script>
 const model=__DATA__;
 const ev=model.events,actors=model.actors;
+// Streamlit's HTML iframe has a fixed fallback height. Report measured content
+// size so its parent can expand the frame when supported by the runtime.
+let lastHeight=0;
+function resizeFrame(){
+  const height=Math.ceil(Math.max(
+    document.documentElement.scrollHeight,document.body.scrollHeight,
+    document.querySelector(".shell").getBoundingClientRect().bottom
+  ))+28;
+  if(Math.abs(height-lastHeight)>3){
+    lastHeight=height;
+    window.parent.postMessage({
+      isStreamlitMessage:true,type:"streamlit:setFrameHeight",height:height
+    },"*");
+  }
+}
+if(window.ResizeObserver){
+  new ResizeObserver(resizeFrame).observe(document.querySelector(".shell"));
+}
+window.addEventListener("resize",resizeFrame);
+window.addEventListener("load",resizeFrame);
 const svg=document.getElementById("sequence"),viewport=document.getElementById("viewport");
 const ns="http://www.w3.org/2000/svg",left=105,right=1120;
 const x=i=>left+i*(right-left)/Math.max(actors.length-1,1);
@@ -299,6 +322,7 @@ function show(){
    final.appendChild(note);
  }else{final.hidden=true;final.replaceChildren()}
  draw();
+ requestAnimationFrame(resizeFrame);
 }
 function stop(){if(timer!==null){clearInterval(timer);timer=null}
  document.getElementById("toggle").textContent="▶ Play"}
@@ -313,6 +337,7 @@ document.getElementById("restart").onclick=()=>{stop();step(0)};
 document.getElementById("end").onclick=()=>{stop();step(ev.length-1)};
 document.getElementById("toggle").onclick=()=>timer===null?start():stop();
 show();
+requestAnimationFrame(resizeFrame);
 if(!reduced)start();
 </script></body></html>'''
     return page.replace("__DATA__", payload)
@@ -509,7 +534,7 @@ def render_sequence_replay():
     components.html(
         _sequence_html(result["sequence_events"], lifelines, summary,
                        result["sequence_speed"]),
-        height=1390, scrolling=False,
+        height=1600, scrolling=True,
     )
     with st.expander("Technical evidence — actual messages and decision logs"):
         _large_evidence_table(
