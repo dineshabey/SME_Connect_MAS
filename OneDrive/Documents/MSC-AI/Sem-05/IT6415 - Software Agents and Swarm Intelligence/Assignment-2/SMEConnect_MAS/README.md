@@ -253,3 +253,22 @@ python -m streamlit run dashboard/app.py
 ```
 
 The automated test checks structural routing, sequential trace composition and HTML escaping. Visual and full runtime verification still require launching Streamlit locally.
+
+### Animated Multi-Agent Sequence Replay (new Viva workspace)
+
+Open **🔀 Sequence Replay** in the Streamlit **PRESENTATION** sidebar group. This is an independent, English-only workflow diagram page alongside the existing **⚡ Workflow Simulator**.
+
+- Configure retailer R1/R2, sellers S1/S2, quantity, opening and target offers, round limit, resale price and speed.
+- Click **Run and animate agent sequence**. The existing `_run_session()` controller computes one isolated real LangGraph/Pydantic synthetic scenario, including supplier selection, delivery and simulated reservation.
+- A self-contained local SVG sequence viewer displays lifelines for the retailer, selected sellers, C1 and D1. Validated message events become directional arrows. Discovery, selection, THINK and reservation decisions are distinct labeled cards and are never presented as transmitted messages.
+- The viewer auto-plays the recorded events and supports **Pause/Resume**, **Previous**, **Next**, **Restart** and **Show final result**. It displays event explanations, quantity/price where recorded, and a final summary with seller, price, delivery quote, reservation total and status. The full validated messages and supplier evaluations remain available in an expandable evidence panel.
+- Playback runs entirely inside a locally rendered iframe with no web/CDN dependencies. Controls change only the displayed event index, **never the Python simulation or reservation ledger again**. A new Run explicitly generates a fresh isolated synthetic run. No real orders, payment or delivery occur.
+
+```powershell
+git pull origin main
+python -m py_compile dashboard/sequence_replay.py dashboard/workflow_simulator.py dashboard/app.py
+python -m pytest -q
+python -m streamlit run dashboard/app.py
+```
+
+Verify in browser: select R1 + S1/S2, 200 packets and Rs.150 initial price; Run; watch arrows/decision cards appear; pause, step forward/backward, show the final simulated result; inspect the authentic message evidence. Repeat with a rejected or infeasible scenario to demonstrate failure handling. Browser-level visual validation and full pytest execution are still required locally.
