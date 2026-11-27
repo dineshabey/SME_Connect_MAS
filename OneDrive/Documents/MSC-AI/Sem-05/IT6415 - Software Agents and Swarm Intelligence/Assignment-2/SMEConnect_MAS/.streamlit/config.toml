@@ -1,0 +1,9 @@
+# SMEConnect AI's research-demo color system.
+# Use native Streamlit theme options for controls, charts and focus states.
+[theme]
+base = "dark"
+primaryColor = "#42C7C9"
+backgroundColor = "#0E141D"
+secondaryBackgroundColor = "#172637"
+textColor = "#EDF5FC"
+font = "sans serif"
