@@ -122,7 +122,7 @@ def render_experiment_evaluation() -> None:
         })
     st.dataframe(comparison, use_container_width=True, hide_index=True)
     st.bar_chart(
-        {row["scenario_name"]: row["supplier_switch_rate_pct"] for row in metrics},
+        comparison, x="Market shock", y="Switch rate (%)",
         y_label="Supplier switching rate (%)",
     )
     with st.expander("📏 How we calculate each metric"):
