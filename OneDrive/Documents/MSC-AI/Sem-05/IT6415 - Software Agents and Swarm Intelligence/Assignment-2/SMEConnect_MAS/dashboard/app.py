@@ -15,6 +15,7 @@ from dashboard.market_experiment_viz import render_market_experiment
 from dashboard.experiment_evaluation_viz import render_experiment_evaluation
 from dashboard.overview_viz import render_overview
 from dashboard.viva_mode import render_viva_mode
+from dashboard.workflow_simulator import render_workflow_simulator
 from dashboard.ui_design import apply_theme, show_sidebar, show_header, PAGES
 
 st.set_page_config(page_title="SMEConnect AI | MAS Learning Lab", page_icon="🤝", layout="wide", initial_sidebar_state="expanded")
@@ -214,3 +215,6 @@ if selected_page == PAGES[8]:
 
 if selected_page == PAGES[9]:
     render_viva_mode()
+
+if selected_page == PAGES[10]:
+    render_workflow_simulator()
