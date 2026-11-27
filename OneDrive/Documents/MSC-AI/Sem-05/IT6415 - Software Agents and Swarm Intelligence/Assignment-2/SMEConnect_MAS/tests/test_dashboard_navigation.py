@@ -77,3 +77,15 @@ def test_quick_launch_navigation_keeps_real_buttons():
         assert f".st-key-{key} button" in theme
     assert 'on_click=navigate_to' in overview
     assert 'smc-launch-item' in overview
+
+
+def test_sidebar_uses_grouped_buttons_instead_of_radio_circles():
+    theme = (PROJECT / "dashboard" / "ui_design.py").read_text(encoding="utf-8")
+    assert "st.radio(" not in theme
+    assert 'key=f"smc_nav_{index}"' in theme
+    assert 'on_click=navigate_to' in theme
+    assert 'type="primary" if selected == page else "secondary"' in theme
+    for group in ("WORKSPACE", "AGENT WORKFLOWS", "LEARNING LABS"):
+        assert group in theme
+    assert '.smc-menu-group' in theme
+    assert 'smc_nav_' in theme
