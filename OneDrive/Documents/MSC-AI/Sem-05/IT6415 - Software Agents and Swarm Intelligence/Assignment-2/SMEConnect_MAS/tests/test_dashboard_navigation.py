@@ -44,3 +44,26 @@ def test_navigation_rejects_unknown_destinations():
     import pytest
     with pytest.raises(ValueError):
         navigate_to("NOT_A_REAL_PAGE")
+
+
+def test_overview_renders_real_registry_statistics_in_custom_cards():
+    source = (PROJECT / "dashboard" / "overview_viz.py").read_text(encoding="utf-8")
+    assert 'len(agents)' in source
+    assert 'len(sellers)' in source
+    assert 'len(retailers)' in source
+    assert 'len(SCENARIO_NAMES) - 1' in source
+    assert 'smc-kpi-grid' in source
+    assert 'smc-kpi-card' in source
+    assert 'st.metric(title, value' not in source
+
+
+def test_agent_cards_are_role_colored_and_trace_remains_real():
+    overview = (PROJECT / "dashboard" / "overview_viz.py").read_text(encoding="utf-8")
+    theme = (PROJECT / "dashboard" / "ui_design.py").read_text(encoding="utf-8")
+    assert 'smc-agent-grid' in overview
+    assert 'smc-agent-card' in overview
+    assert 'smc-agent-avatar' in overview
+    assert 'run_market_experiment(' in overview
+    for classname in ('smc-kpi-card', 'smc-agent-card', 'smc-agent-avatar'):
+        assert f'.{classname}' in theme
+    assert 'st.button(' in overview
