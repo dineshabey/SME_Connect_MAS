@@ -154,7 +154,7 @@ The academic report and demonstration script are drafts, **not** automatically v
 
 ### Automated Phase 05.3 verification (GitHub Actions)
 
-A repository-level GitHub Actions workflow, [`phase05-verification.yml`](../../../../../../../.github/workflows/phase05-verification.yml), is configured for pushes to `main` affecting this project and supports manual `workflow_dispatch`. It creates a clean Python 3.11 environment, installs `requirements.txt`, compiles Python files, runs **all pytest tests**, executes the deterministic default evaluation, and checks that the generated report includes results and has no placeholders.
+A repository-level GitHub Actions workflow, [`phase05-verification.yml`](https://github.com/dineshabey/SME_Connect_MAS/blob/main/.github/workflows/phase05-verification.yml), is configured for pushes to `main` affecting this project and supports manual `workflow_dispatch`. It creates a clean Python 3.11 environment, installs `requirements.txt`, compiles Python files, runs **all pytest tests**, executes the deterministic default evaluation, and checks that the generated report includes results and has no placeholders.
 
 On a **successful** workflow run, open the repository **Actions** page → **SMEConnect MSc Phase 05.3 verification** → latest run → download the **`smeconnect-phase05-evidence`** artifact. It contains the CSV, JSON, report-ready tables and `FINAL_REPORT_WITH_RESULTS.md`. A workflow committed to GitHub is *not* evidence of passing tests: only the actual completed run log and uploaded artifact verify completion.
 
