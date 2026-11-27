@@ -79,7 +79,7 @@ The target system demonstrates:
 
 ## Implementation status
 
-This repository currently contains a **starter prototype**, not a completed or experimentally validated multi-agent marketplace. The seller and retailer have separate LangGraph decision workflows, a bounded two-way negotiation protocol is implemented, and Phase 03 adds independent seller discovery, competing negotiations and a retailer-owned supplier-selection StateGraph. Integrated delivery coordination, atomic inventory/budget reservations, dynamic-market experiments and evaluated emergent behaviours remain development goals.
+This repository contains an **academic synthetic simulation prototype**, not a production marketplace. Implemented code includes separate LangGraph seller/retailer workflows, bounded negotiation, multiple-seller competition, retailer supplier selection, public synthetic catalogue, simulated resource/delivery reservation, controlled market scenarios, and a reproducible evaluation runner. Real-data validation, concurrency-safe persistence, actual payments/shipments, policy learning and evidence of emergent self-organization **remain future work**. Numerical experimental findings must be verified by executing the code locally.
 
 The market data and business scenarios are **synthetic examples**, not real commercial transactions.
 
@@ -132,3 +132,22 @@ Use the **📈 Phase 05 · Market Adaptation** tab to compare real bounded negot
 ### Phase 05.2 — Experiment Evaluation and Evidence Export
 
 Open **🧪 Phase 05.2 · Experiments** to run reproducible, bounded paired comparisons over quantities, initial offers and synthetic market shocks. The new tool measures actual supplier selection/switching rates, expected gross profit and communication volume through existing LangGraph negotiations, then exports a public CSV trial table or JSON evaluation summary. The default deterministic grid contains 18 pairs (36 independent marketplace runs). It does not involve random sampling, live SME data, payment or order fulfilment; see [architecture](docs/architecture.md) for formulas and limitations.
+
+### Phase 05.3 — MSc Assignment Report and Demonstration Pack
+
+- **Academic report draft:** [docs/FINAL_ASSIGNMENT_REPORT.md](docs/FINAL_ASSIGNMENT_REPORT.md) (architecture, problem, methodology, limitations and clearly marked results placeholders).
+- **Professor walkthrough and Q&A:** [docs/FINAL_DEMO_SCRIPT.md](docs/FINAL_DEMO_SCRIPT.md).
+- **Updated agent evidence:** [docs/agent_characteristics.md](docs/agent_characteristics.md).
+- **Executable measured-results export:** `python -m smeconnect.simulation.export_evidence --out-dir evaluation_output`.
+
+Before submitting the report, run the entire test suite and evidence exporter in your own environment, verify the measured `evaluation_output/RESULTS_FOR_REPORT.md` table, and insert those findings into Section 6 of the report. Generated CSV/JSON/Markdown are *synthetic simulation evidence*, not externally verified market data. The export includes the Git revision and Python/package version metadata when available.
+
+```powershell
+git pull origin main
+python -m py_compile smeconnect/simulation/export_evidence.py
+python -m pytest -q
+python -m smeconnect.simulation.export_evidence --out-dir evaluation_output
+python -m streamlit run dashboard/app.py
+```
+
+The academic report and demonstration script are drafts, **not** automatically verified final submissions. Follow any university instructions for formatting, referencing and authorship disclosures.
