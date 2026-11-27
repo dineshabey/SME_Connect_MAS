@@ -161,6 +161,8 @@ def test_interactive_workflow_simulator_is_a_real_routed_workspace():
         "ReservationLedger.from_marketplace()", "neon_scene(",
         "st.session_state", "time.sleep(", "wf_index",
         "Play to final outcome", "Final multi-agent decision",
+        'st.session_state["wf_autoplay"] = True',
+        'st.session_state.pop("wf_autoplay", False)',
     ):
         assert marker in simulator
 
