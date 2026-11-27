@@ -123,7 +123,7 @@ def render_completed_report(batch: dict, *, template: str) -> str:
     _, after = remaining.split(closing, 1)
     section = render_results_markdown(batch)
     # A generated report already contains the tables; omit copy instructions.
-    section = section.split("## Reporting instruction", 1)[0].rstrip() + "\\n"
+    section = section.split("## Reporting instruction", 1)[0].rstrip() + "\n"
     section = section.replace(
         "# Verified-by-execution synthetic evaluation output",
         "### 6.1 Measured synthetic evaluation (local execution)",
