@@ -35,6 +35,13 @@ def test_evidence_export_matches_computed_batch(tmp_path):
     assert "100.00%" in markdown
     assert "not empirical observations" in markdown
 
+    completed = paths["report"].read_text(encoding="utf-8")
+    assert "## 6. Results — Locally Measured Synthetic Simulation" in completed
+    assert "### 6.1 Measured synthetic evaluation (local execution)" in completed
+    assert "S2 Stock Shortage" in completed
+    assert "Insert measured value" not in completed
+    assert "## 9. Conclusion and Future Work" in completed
+
 
 def test_report_renders_numerical_table_from_batch_not_placeholders():
     text = render_results_markdown(_one_real_pair())
