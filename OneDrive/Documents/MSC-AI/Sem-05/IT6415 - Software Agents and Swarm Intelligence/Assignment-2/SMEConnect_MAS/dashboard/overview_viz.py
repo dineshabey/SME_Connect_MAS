@@ -1,193 +1,230 @@
-"""Phase 06: a readable academic landing dashboard backed by genuine agent state.
+"""Modern, explainable landing experience for the SMEConnect AI academic demo.
 
-The overview is a navigation and teaching aid; no business decisions happen here.
+Only confirmed agent registry information and actual experiment outputs appear.
 """
+import html
+
 import streamlit as st
 
+from dashboard.ui_design import PAGES, navigate_to
 from smeconnect.environment.marketplace import build_agents
+from smeconnect.environment.market_state import SCENARIO_NAMES
 from smeconnect.simulation.market_experiment import run_market_experiment
 
-AGENT_DESCRIPTIONS = [
-    ("S1", "🏪", "Margin-focused seller", "Protects its target price and available stock"),
-    ("S2", "📦", "Volume-focused seller", "Can accept eligible bulk negotiations"),
-    ("R1", "🛒", "Cost-focused retailer", "Negotiates and chooses financially feasible offers"),
-    ("R2", "🛍️", "Availability-focused retailer", "Has independent budget and demand constraints"),
-    ("D1", "🚚", "Delivery agent", "Checks trip capacity and quotes a simulated fee"),
-    ("M1", "📈", "Market observer", "Reports controlled market changes via typed messages"),
-    ("C1", "🧭", "Coordinator", "Discovers sellers and facilitates resource reservations"),
-]
+
+AGENT_DESCRIPTIONS = (
+    ("S1", "🏪", "Margin-focused seller", "Protects its own pricing and stock limits", "Seller"),
+    ("S2", "📦", "Volume-focused seller", "Accepts eligible bulk orders under its rules", "Seller"),
+    ("R1", "🛒", "Cost-focused retailer", "Negotiates offers and evaluates gross profit", "Retailer"),
+    ("R2", "🛍️", "Availability-focused retailer", "Buys within its budget and demand limits", "Retailer"),
+    ("D1", "🚚", "Delivery service", "Checks delivery capacity and quotes a trip fee", "Delivery"),
+    ("M1", "📡", "Market observer", "Shares changes through validated messages", "Market"),
+    ("C1", "🧭", "Coordinator", "Discovers suppliers and coordinates reservations", "Coordinator"),
+)
 
 
-def _agent_network():
-    """Explanatory topology, not a live packet trace."""
+NETWORK_CSS = """
+<style>
+.smc-network{
+    background:linear-gradient(125deg,#14243a,#113448);
+    border:1px solid #375b71;
+    border-radius:17px;
+    padding:22px clamp(16px,2vw,35px);
+}
+.smc-network .group{
+    display:grid;gap:18px;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.smc-network .group.three{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+}
+.smc-network .node{
+    background:rgba(31,82,105,.68);
+    border:1px solid #4f96aa;
+    border-radius:13px;
+    padding:17px 14px;
+    text-align:center;
+    min-width:0;
+}
+.smc-network .node b{display:block;font-size:22px;color:#f4faff}
+.smc-network .node span{font-size:16px;color:#bcd8e4}
+.smc-network .connector{
+    display:flex;gap:12px;justify-content:center;align-items:center;
+    padding:12px 8px;color:#82d8df;font-size:16px;font-weight:700;
+}
+.smc-network .connector::before,
+.smc-network .connector::after{
+    content:"";display:block;height:1px;background:#40768a;flex:1;
+}
+.smc-network .foot{
+    margin-top:15px;text-align:center;color:#aac3d2;
+    font-size:14px;
+}
+@media(max-width:700px){
+  .smc-network .group.three{grid-template-columns:1fr}
+  .smc-network .node b{font-size:18px}
+  .smc-network .node span{font-size:14px}
+  .smc-network .connector{font-size:13px}
+}
+</style>
+"""
+
+
+def _network():
+    """A conceptual network, clearly distinguished from runtime messages."""
+    st.markdown(NETWORK_CSS, unsafe_allow_html=True)
     st.markdown(
-        """
-        <style>
-        .mas-network{
-            border-radius:20px;background:linear-gradient(125deg,#11243d,#12384a);
-            padding:36px clamp(20px,4vw,72px);color:#e8f3ff;
-            border:1px solid #3b7188;margin:12px 0 28px;
-        }
-        .mas-network .net-row{
-            display:flex;gap:clamp(18px,3vw,52px);align-items:stretch;
-            justify-content:space-evenly;flex-wrap:wrap;margin:18px 0;
-            width:100%;
-        }
-        .mas-network .net-node{
-            flex:1 1 240px;max-width:390px;min-width:210px;
-            border:2px solid #518da8;background:#1c4561;border-radius:16px;
-            padding:27px 24px;text-align:center;color:#f5fafc;
-            font-size:25px !important;line-height:1.35;font-weight:750;
-        }
-        .mas-network .net-node small{
-            display:block;font-weight:450;font-size:19px !important;
-            line-height:1.5;color:#c9e1ec;margin-top:7px;
-        }
-        .mas-network .net-line{
-            font-size:22px !important;font-weight:650;color:#71d5e5;
-            text-align:center;margin:15px auto;
-        }
-        .mas-network .net-note{
-            text-align:center;color:#c3dbe6;font-size:18px !important;
-            line-height:1.5;margin-top:22px;
-        }
-        @media(max-width:750px){
-          .mas-network{padding:22px 12px}
-          .mas-network .net-node{min-width:145px;font-size:19px !important;padding:16px 10px}
-          .mas-network .net-node small{font-size:15px !important}
-          .mas-network .net-line{font-size:16px !important}
-        }
-        </style>
-        <div class="mas-network">
-          <div class="net-row">
-            <div class="net-node">🏪 Seller S1<small>Margin strategy</small></div>
-            <div class="net-node">📦 Seller S2<small>Volume strategy</small></div>
-          </div>
-          <div class="net-line">↕ proposals · accept · reject ↕</div>
-          <div class="net-row">
-            <div class="net-node">🛒 Retailer R1<small>Cost strategy</small></div>
-            <div class="net-node">🛍️ Retailer R2<small>Demand strategy</small></div>
-          </div>
-          <div class="net-line">↕ coordination and public signals ↕</div>
-          <div class="net-row">
-            <div class="net-node">🚚 Delivery D1<small>Capacity / trip fee</small></div>
-            <div class="net-node">📈 Market M1<small>Scenario signals</small></div>
-            <div class="net-node">🧭 Coordinator C1<small>Discovery / reservation</small></div>
-          </div>
-          <div class="net-note">Conceptual roles and message paths · communication traces appear inside each lab</div>
-        </div>
-        """,
+        '<div class="smc-network">'
+        '<div class="group">'
+        '<div class="node"><b>🏪 S1 · Margin seller</b><span>Independent seller negotiation</span></div>'
+        '<div class="node"><b>📦 S2 · Volume seller</b><span>Independent bulk-order policy</span></div>'
+        '</div>'
+        '<div class="connector">PROPOSE · ACCEPT · REJECT</div>'
+        '<div class="group">'
+        '<div class="node"><b>🛒 R1 · Cost retailer</b><span>Negotiates and selects supplier</span></div>'
+        '<div class="node"><b>🛍️ R2 · Demand retailer</b><span>Independent financial constraints</span></div>'
+        '</div>'
+        '<div class="connector">DELIVERY QUOTES · MARKET SIGNALS</div>'
+        '<div class="group three">'
+        '<div class="node"><b>🚚 D1 · Delivery</b><span>Trip capacity and fee</span></div>'
+        '<div class="node"><b>📡 M1 · Market</b><span>Scenario notifications</span></div>'
+        '<div class="node"><b>🧭 C1 · Coordinator</b><span>Discovery and reservations</span></div>'
+        '</div>'
+        '<div class="foot">Conceptual agent roles; view recorded messages inside the relevant workspace.</div>'
+        '</div>',
         unsafe_allow_html=True,
     )
 
 
+def _workspace_card(title, description, page, button_text):
+    with st.container(border=True):
+        st.markdown(f"**{title}**")
+        st.caption(description)
+        st.button(
+            button_text,
+            key="overview_open_" + str(PAGES.index(page)),
+            use_container_width=True,
+            on_click=navigate_to,
+            args=(page,),
+        )
+
+
+def _result_card(title: str, data: dict):
+    with st.container(border=True):
+        st.markdown(f"**{title}**")
+        left, right = st.columns(2)
+        left.metric("Selected supplier", data["selected_seller"] or "None")
+        right.metric(
+            "Agreed unit price",
+            f"Rs. {data['agreed_price']:,.2f}"
+            if data["agreed_price"] is not None else "No agreement",
+        )
+        st.metric("Expected gross profit", f"Rs. {data['expected_gross_profit']:,.2f}")
+        st.caption("Provisional agreement · no order committed")
+
+
 def render_overview() -> None:
-    st.subheader("🎓 Professor Demo · Multi-Agent Control Center")
-    st.caption("A guided overview of the real simulation. All businesses, quantities and prices are synthetic.")
-
     agents = build_agents()
-    sellers = sum(a.role == "seller" for a in agents)
-    retailers = sum(a.role == "retailer" for a in agents)
-    top = st.columns(4)
-    top[0].metric("Registered agents", len(agents))
-    top[1].metric("Competing sellers", sellers)
-    top[2].metric("Independent retailers", retailers)
-    top[3].metric("Market scenarios", 3)
-    st.info(
-        "**සිංහලෙන්:** එකම system එකේ වෙන වෙනම goals තියෙන agents 7ක් ක්‍රියාකරනවා. "
-        "Seller සහ Retailer මිල ගැන සාකච්ඡා කරලා, Delivery සහ Coordinator "
-        "resources සකස් කරනවා; Market Agent වෙනස්කම් report කරනවා."
-    )
+    sellers = [a for a in agents if a.role == "seller"]
+    retailers = [a for a in agents if a.role == "retailer"]
 
-    st.markdown("### Understand the agent network")
-    _agent_network()
+    st.markdown("### Marketplace at a glance")
+    a, b, c, d = st.columns(4)
+    for col, title, value, help_text in (
+        (a, "Registered agents", len(agents), "Synthetic registered agents from the Python registry"),
+        (b, "Independent sellers", len(sellers), "S1 and S2 negotiate separately"),
+        (c, "Retailer agents", len(retailers), "Independent budget and demand constraints"),
+        (d, "Market shocks", len(SCENARIO_NAMES) - 1, "Controlled synthetic market events"),
+    ):
+        with col:
+            with st.container(border=True):
+                st.metric(title, value, help=help_text)
 
-    st.markdown("### Meet the seven agents")
-    for i in range(0, len(AGENT_DESCRIPTIONS), 3):
-        cols = st.columns(3)
-        for col, (agent_id, emoji, title, description) in zip(
-            cols, AGENT_DESCRIPTIONS[i:i + 3]
-        ):
+    main, helper = st.columns([1.75, 1], gap="large")
+    with main:
+        st.markdown("### How the agents collaborate")
+        _network()
+    with helper:
+        st.markdown("### Quick start")
+        with st.container(border=True):
+            st.markdown("**01 · Explore marketplace**")
+            st.caption("See public listing prices and supplier availability.")
+            st.button("Open Marketplace", use_container_width=True,
+                      key="quick_market", on_click=navigate_to, args=(PAGES[1],))
+            st.divider()
+            st.markdown("**02 · Watch autonomous negotiation**")
+            st.caption("Compare seller offers and the retailer's selected supplier.")
+            st.button("Open Competition", use_container_width=True,
+                      key="quick_compete", on_click=navigate_to, args=(PAGES[2],))
+            st.divider()
+            st.markdown("**03 · Evaluate the market**")
+            st.caption("Compare controlled market shocks and measured responses.")
+            st.button("Open Analytics", use_container_width=True,
+                      key="quick_experiment", on_click=navigate_to, args=(PAGES[5],))
+        st.caption("You can reach all nine workspaces through the sidebar.")
+
+    st.markdown("### Meet the agents")
+    for i in range(0, len(AGENT_DESCRIPTIONS), 4):
+        cols = st.columns(4)
+        for col, (agent_id, emoji, title, detail, role) in zip(cols, AGENT_DESCRIPTIONS[i:i+4]):
             with col:
                 with st.container(border=True):
                     st.markdown(f"**{emoji} {agent_id} · {title}**")
-                    st.caption(description)
+                    st.caption(detail)
+                    st.markdown(f'<span class="smc-tag">{html.escape(role.upper())}</span>',
+                                unsafe_allow_html=True)
 
-    st.markdown("### Guided demonstration path")
-    steps = [
-        ("01", "🏬 Marketplace", "Inspect synthetic public seller listings."),
-        ("02", "🏆 Supplier competition", "See independent S1/S2 negotiations and R1 choice."),
-        ("03", "🚚 Delivery coordination", "Observe simulated resource checks and reservation."),
-        ("04", "📈 Market adaptation", "Change stock or pricing and see agents re-evaluate."),
-        ("05", "🧪 Experiments", "Measure selection rates, prices and communication volume."),
-    ]
-    for number, title, description in steps:
-        st.markdown(f"**{number} · {title}** — {description}")
-    st.caption("Select the named tab above to run each step. This overview never fabricates a transaction.")
-
-    st.markdown("### One-click live market demonstration")
-    st.write(
-        "Compare a normal market to an S2 stock shortage using **the actual existing "
-        "LangGraph seller and retailer decisions**. Both trials use R1, 200 packets, "
-        "Rs.150 initial offer and five negotiation rounds."
-    )
-    run = st.button(
-        "▶ Demonstrate how a stock shortage changes the supplier",
-        type="primary", use_container_width=True, key="professor_demo_run",
-    )
-    if run:
-        try:
-            st.session_state["professor_demo_outcome"] = run_market_experiment(
-                scenario="s2_shortage", retailer_id="R1",
-                quantity=200, initial_price=150.0,
-                retailer_target=150.0, max_rounds=5,
-            )
-        except (RuntimeError, ValueError, PermissionError) as error:
-            st.session_state.pop("professor_demo_outcome", None)
-            st.error(f"Demonstration stopped: {error}")
-    outcome = st.session_state.get("professor_demo_outcome")
-    if outcome:
-        cols = st.columns(2)
-        for col, title, key in (
-            (cols[0], "Normal marketplace", "before"),
-            (cols[1], "After S2 stock shortage", "after"),
-        ):
-            data = outcome[key]
-            with col:
-                with st.container(border=True):
-                    st.markdown(f"**{title}**")
-                    st.metric("Selected supplier", data["selected_seller"] or "None")
-                    if data["agreed_price"] is not None:
-                        st.metric("Negotiated packet price", f"Rs. {data['agreed_price']:,.2f}")
-                    else:
-                        st.metric("Negotiated packet price", "No agreement")
-                    st.metric(
-                        "Expected gross profit",
-                        f"Rs. {data['expected_gross_profit']:,.2f}",
-                    )
-        if outcome["before"]["selected_seller"] != outcome["after"]["selected_seller"]:
-            st.success("Actual simulation result: the selected supplier changed.")
-        else:
-            st.info("Actual simulation result: supplier selection did not change.")
-        with st.expander("🔍 Why did agents make these decisions?"):
-            st.write(outcome["market_signal"]["summary"])
-            for label, key in (("Normal market", "baseline"), ("Changed market", "changed")):
-                st.markdown(f"**{label}**")
-                for seller_id, negotiation in outcome[key]["negotiations"].items():
-                    st.write(
-                        f"{seller_id}: {negotiation['status']}; "
-                        f"{len(negotiation['messages'])} recorded messages."
-                    )
-                    st.dataframe(negotiation["timeline"], hide_index=True,
-                                 use_container_width=True)
-        st.caption(
-            "The supplier change (if any) is a rule-based response to different stock inputs, "
-            "not proof of online learning. No inventory is reserved by this experiment."
+    st.markdown("### Interactive demo · What happens during a stock shortage?")
+    with st.container(border=True):
+        st.write(
+            "Run an **actual supplier-selection experiment** with the existing "
+            "LangGraph rules. Both conditions use R1, 200 packets, a Rs.150 opening "
+            "offer and five maximum rounds."
         )
+        if st.button("▶ Run stock-shortage scenario", type="primary",
+                     key="professor_demo_run", use_container_width=True):
+            try:
+                st.session_state["professor_demo_outcome"] = run_market_experiment(
+                    scenario="s2_shortage", retailer_id="R1",
+                    quantity=200, initial_price=150.0,
+                    retailer_target=150.0, max_rounds=5,
+                )
+            except (ValueError, RuntimeError, PermissionError) as exc:
+                st.session_state.pop("professor_demo_outcome", None)
+                st.error(f"Simulation stopped: {exc}")
+        outcome = st.session_state.get("professor_demo_outcome")
+        if outcome:
+            c1, c2 = st.columns(2, gap="large")
+            with c1:
+                _result_card("Normal market", outcome["before"])
+            with c2:
+                _result_card("After S2 stock shortage", outcome["after"])
+            if outcome["before"]["selected_seller"] != outcome["after"]["selected_seller"]:
+                st.success("Supplier selection changed because the agents evaluated new market constraints.")
+            else:
+                st.info("Supplier selection remained unchanged for these inputs.")
+            with st.expander("🔎 Inspect real agent messages and decisions"):
+                st.markdown(f"**Market M1:** {outcome['market_signal']['summary']}")
+                for label, key in (("Before", "baseline"), ("After", "changed")):
+                    st.markdown(f"**{label} market — recorded seller negotiations**")
+                    for sid, run in outcome[key]["negotiations"].items():
+                        st.markdown(f"**{sid}** · {run['status']} · {len(run['messages'])} messages")
+                        st.dataframe(run["timeline"], hide_index=True,
+                                     use_container_width=True)
+            st.caption("Rule-based adaptation only. No payments, bookings, learned policy or real market feeds.")
 
-    st.markdown("### Academic evidence and scope")
+    st.markdown("### Explore other workflows")
+    one, two, three = st.columns(3)
+    with one:
+        _workspace_card("🚚 Delivery coordination", "Validate stock, delivery capacity and budget.",
+                        PAGES[3], "Explore delivery")
+    with two:
+        _workspace_card("📈 Market adaptation", "Compare the before/after state of simulated markets.",
+                        PAGES[4], "Explore market changes")
+    with three:
+        _workspace_card("💬 Guided negotiation", "Step through actual proposals, replies and decisions.",
+                        PAGES[6], "Replay a negotiation")
     st.caption(
-        "Implemented: independent decisions, typed messages, competition, negotiation, "
-        "session-scoped coordination and reproducible market evaluations. "
-        "Not implemented: real commerce, payments, distributed deployment or autonomous learning."
+        "SMEConnect AI is an offline teaching prototype with sequential in-memory agents. "
+        "It does not execute real SME transactions or prove machine-learned adaptation."
     )
