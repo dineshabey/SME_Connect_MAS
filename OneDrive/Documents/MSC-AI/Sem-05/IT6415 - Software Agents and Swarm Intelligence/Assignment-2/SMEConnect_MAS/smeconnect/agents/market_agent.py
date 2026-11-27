@@ -13,7 +13,7 @@ class MarketAgent(BaseAgent):
         if scenario == "s2_shortage":
             return {
                 "signal": "STOCK_SHORTAGE",
-                "summary": "Seller S2 publicly advertises only 100 packets.",
+                "summary": "In this synthetic scenario, Seller S2 can supply only 100 packets.",
                 "product": "market_s2_stock",
                 "quantity": seller_stock["S2"],
             }
