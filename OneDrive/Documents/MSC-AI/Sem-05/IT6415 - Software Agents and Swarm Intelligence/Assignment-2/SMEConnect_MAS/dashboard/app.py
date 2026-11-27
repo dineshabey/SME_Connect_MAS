@@ -13,6 +13,7 @@ from dashboard.marketplace_viz import render_marketplace
 from dashboard.delivery_viz import render_delivery_coordination
 from dashboard.market_experiment_viz import render_market_experiment
 from dashboard.experiment_evaluation_viz import render_experiment_evaluation
+from dashboard.overview_viz import render_overview
 
 st.set_page_config(page_title="SMEConnect AI | MAS Learning Lab", page_icon="🤝", layout="wide")
 st.markdown(
@@ -100,12 +101,14 @@ def event_visual(timeline, index, buyer, seller):
 def set_step(index, count):
     st.session_state["walk_step"] = min(max(index, 0), count - 1)
 
-tab_marketplace, tab_competition, tab_delivery, tab_market, tab_evaluation, tab_tour, tab_seller, tab_retailer = st.tabs(
-    ["🏬 Marketplace", "🏆 Phase 03 · Supplier Competition",
+tab_overview, tab_marketplace, tab_competition, tab_delivery, tab_market, tab_evaluation, tab_tour, tab_seller, tab_retailer = st.tabs(
+    ["🎓 Professor Demo", "🏬 Marketplace", "🏆 Phase 03 · Supplier Competition",
      "🚚 Phase 04 · Delivery Coordination", "📈 Phase 05 · Market Adaptation",
-     "🧪 Phase 05.2 · Experiments", "🎓 Guided Negotiation",
+     "🧪 Phase 05.2 · Experiments", "💬 Guided Negotiation",
      "🏪 Seller Decision Lab", "🛒 Retailer Decision Lab"]
 )
+with tab_overview:
+    render_overview()
 with tab_marketplace:
     render_marketplace()
 with tab_market:
