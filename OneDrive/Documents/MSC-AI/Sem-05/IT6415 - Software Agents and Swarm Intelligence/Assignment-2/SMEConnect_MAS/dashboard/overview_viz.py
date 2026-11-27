@@ -29,7 +29,7 @@ NETWORK_CSS = """
     background:linear-gradient(125deg,#14243a,#113448);
     border:1px solid #375b71;
     border-radius:17px;
-    padding:22px clamp(16px,2vw,35px);
+    padding:28px clamp(18px,2.2vw,42px);box-shadow:0 16px 35px rgba(0,0,0,.24);
 }
 .smc-network .group{
     display:grid;gap:18px;
@@ -39,27 +39,32 @@ NETWORK_CSS = """
     grid-template-columns:repeat(3,minmax(0,1fr));
 }
 .smc-network .node{
-    background:rgba(31,82,105,.68);
-    border:1px solid #4f96aa;
-    border-radius:13px;
-    padding:17px 14px;
+    background:linear-gradient(145deg,#21435c,#195267);
+    border:1px solid #60a9b7;
+    border-radius:16px;
+    padding:24px 16px;box-shadow:inset 0 1px rgba(255,255,255,.09);
+    min-height:108px;
     text-align:center;
     min-width:0;
 }
-.smc-network .node b{display:block;font-size:22px;color:#f4faff}
-.smc-network .node span{font-size:16px;color:#bcd8e4}
+.smc-network .node b{display:block;font-size:24px;color:#f4faff;line-height:1.35}
+.smc-network .node span{font-size:17px;color:#d5e7ef}
 .smc-network .connector{
     display:flex;gap:12px;justify-content:center;align-items:center;
-    padding:12px 8px;color:#82d8df;font-size:16px;font-weight:700;
+    padding:16px 8px;color:#9ef0e7;font-size:17px;font-weight:800;
 }
 .smc-network .connector::before,
 .smc-network .connector::after{
     content:"";display:block;height:1px;background:#40768a;flex:1;
 }
 .smc-network .foot{
-    margin-top:15px;text-align:center;color:#aac3d2;
-    font-size:14px;
+    margin-top:16px;text-align:center;color:#b9d5e2;
+    font-size:15px;
 }
+.smc-network .group:nth-of-type(3) .node{background:linear-gradient(145deg,#254568,#2b5186);border-color:#648ec1}
+.smc-network .group.three .node:nth-child(1){background:linear-gradient(145deg,#343c66,#493f78);border-color:#9387ca}
+.smc-network .group.three .node:nth-child(2){background:linear-gradient(145deg,#234a44,#23665b);border-color:#5cae92}
+.smc-network .group.three .node:nth-child(3){background:linear-gradient(145deg,#504034,#66503b);border-color:#bc966f}
 @media(max-width:700px){
   .smc-network .group.three{grid-template-columns:1fr}
   .smc-network .node b{font-size:18px}
