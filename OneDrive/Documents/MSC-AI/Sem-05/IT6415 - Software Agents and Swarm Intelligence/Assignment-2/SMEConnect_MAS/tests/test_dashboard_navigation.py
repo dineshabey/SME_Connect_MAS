@@ -315,3 +315,46 @@ def test_sequence_html_escapes_untrusted_script_payloads():
     assert "\\u003c" in html
     assert "document.createElementNS" in html
     assert "clearInterval" in html
+
+
+def test_sequence_decision_explanations_are_projector_readable():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    for required in (
+        'id="decision-panel"', 'id="why-title"', 'id="reason"', 'id="impact"',
+        'id="provenance"', 'font-size:26px!important',
+        'font-size:24px', 'AGENT DECISION EXPLAINED',
+        'Why did ', 'What happened next?', 'RESERVED_SIMULATED',
+    ):
+        assert required in source
+
+
+def test_sequence_final_explanation_uses_actual_reservation_values():
+    from dashboard.sequence_replay import _sequence_events
+
+    retailer = type("Buyer", (), {"agent_id": "R1"})()
+    run = {
+        "competition": {
+            "retailer": retailer,
+            "discovered_seller_ids": ["S1"],
+            "evaluated_seller_ids": [],
+            "negotiations": {},
+            "selection": {"selected_seller_id": "S1", "reasoning": "Feasible choice."},
+        },
+        "coordination": {
+            "events": [], "messages": [], "status": "RESERVED_SIMULATED",
+            "reason": "Recorded reservation.",
+            "reservation": {
+                "quantity": 120, "seller_id": "S1", "retailer_id": "R1",
+                "unit_price": 155.0, "delivery_fee": 1000.0,
+                "reserved_total": 19600.0,
+            },
+        },
+    }
+    final = _sequence_events(run)[-1]
+    assert final["kind"] == "decision"
+    assert "120 packets" in final["description"]
+    assert "S1" in final["description"]
+    assert "Rs.155.00" in final["description"]
+    assert "Rs.1,000.00" in final["description"]
+    assert "Rs.19,600.00" in final["description"]
