@@ -140,8 +140,14 @@ def render_completed_report(batch: dict, *, template: str) -> str:
         "contains results generated from a local synthetic simulation; review pytest and provenance before submission.",
     )
     return completed.replace(
-        "- [ ] Insert the generated measured-results table into Section 6",
-        "- [x] Measured synthetic results inserted into Section 6 by the evidence exporter",
+        "**Document status:** Submission template for implemented Phases 01–05.3; generate a results-filled copy with the evidence exporter, then check tests, citations, and university submission requirements.",
+        "**Document status:** Results-filled MSc report generated from local synthetic experiment executions; tests, citations and university submission requirements still need separate review.",
+    ).replace(
+        "**Results disclosure:** The evaluation runner generates measured synthetic results from 18 paired trials. This source template intentionally retains a replaceable results section; the exported `FINAL_REPORT_WITH_RESULTS.md` contains the locally executed measurements. This is not evidence about real SMEs.",
+        "**Results disclosure:** Section 6 contains measurements produced by the local deterministic synthetic experiments. They do not establish real SME outcomes, online learning or emergence.",
+    ).replace(
+        "- [ ] Verify the generated `FINAL_REPORT_WITH_RESULTS.md` matches its CSV and JSON outputs",
+        "- [ ] Cross-check this generated report against the accompanying CSV and JSON outputs",
     )
 
 
