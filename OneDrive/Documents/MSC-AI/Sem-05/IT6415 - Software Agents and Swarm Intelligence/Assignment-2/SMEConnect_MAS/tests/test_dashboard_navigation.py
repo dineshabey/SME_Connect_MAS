@@ -119,3 +119,14 @@ def test_viva_page_has_ten_english_only_stages_and_real_simulation_calls():
         assert call in source
     assert 'viva_message_step' in source
     assert 'No real purchase' in source
+
+
+def test_viva_presentation_typography_large_enough_for_projector():
+    source = (PROJECT / "dashboard" / "viva_mode.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert "font-size:29px!important" in source  # Agent names
+    assert "font-size:22px!important" in source  # Agent descriptions
+    assert "font-size:23px!important" in source  # Communication connector labels
+    assert "min-height:145px" in source          # Large architecture cards
+    assert "font-size:46px!important" in source  # Numerical metrics
+    assert "@media(max-width:850px)" in source   # Preserve mobile usability
