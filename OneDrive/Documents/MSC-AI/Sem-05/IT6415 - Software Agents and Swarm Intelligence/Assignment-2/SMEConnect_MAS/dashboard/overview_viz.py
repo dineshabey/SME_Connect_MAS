@@ -23,15 +23,40 @@ def _agent_network():
     st.markdown(
         """
         <style>
-        .mas-network{border-radius:16px;background:linear-gradient(125deg,#11243d,#12384a);
-            padding:28px 22px;color:#e8f3ff;border:1px solid #3b7188;margin:8px 0 16px}
-        .mas-network .net-row{display:flex;gap:10px;align-items:center;justify-content:center;
-            flex-wrap:wrap;margin:12px 0}
-        .mas-network .net-node{border:1px solid #518da8;background:#1c4561;border-radius:12px;
-            padding:19px 24px;text-align:center;min-width:175px;color:#f5fafc;font-size:1.12rem;font-weight:700}
-        .mas-network .net-node small{display:block;font-weight:400;font-size:0.88rem;color:#c9e1ec}
-        .mas-network .net-line{font-size:1.3rem;color:#71d5e5;text-align:center}
-        .mas-network .net-note{text-align:center;color:#c3dbe6;font-size:0.92rem;margin-top:14px}
+        .mas-network{
+            border-radius:20px;background:linear-gradient(125deg,#11243d,#12384a);
+            padding:36px clamp(20px,4vw,72px);color:#e8f3ff;
+            border:1px solid #3b7188;margin:12px 0 28px;
+        }
+        .mas-network .net-row{
+            display:flex;gap:clamp(18px,3vw,52px);align-items:stretch;
+            justify-content:space-evenly;flex-wrap:wrap;margin:18px 0;
+            width:100%;
+        }
+        .mas-network .net-node{
+            flex:1 1 240px;max-width:390px;min-width:210px;
+            border:2px solid #518da8;background:#1c4561;border-radius:16px;
+            padding:27px 24px;text-align:center;color:#f5fafc;
+            font-size:25px !important;line-height:1.35;font-weight:750;
+        }
+        .mas-network .net-node small{
+            display:block;font-weight:450;font-size:19px !important;
+            line-height:1.5;color:#c9e1ec;margin-top:7px;
+        }
+        .mas-network .net-line{
+            font-size:22px !important;font-weight:650;color:#71d5e5;
+            text-align:center;margin:15px auto;
+        }
+        .mas-network .net-note{
+            text-align:center;color:#c3dbe6;font-size:18px !important;
+            line-height:1.5;margin-top:22px;
+        }
+        @media(max-width:750px){
+          .mas-network{padding:22px 12px}
+          .mas-network .net-node{min-width:145px;font-size:19px !important;padding:16px 10px}
+          .mas-network .net-node small{font-size:15px !important}
+          .mas-network .net-line{font-size:16px !important}
+        }
         </style>
         <div class="mas-network">
           <div class="net-row">
