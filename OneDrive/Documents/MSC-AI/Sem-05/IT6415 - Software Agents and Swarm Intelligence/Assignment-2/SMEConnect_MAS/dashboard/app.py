@@ -11,6 +11,7 @@ from dashboard.negotiation_viz import neon_scene
 from dashboard.competition_viz import render_competition
 from dashboard.marketplace_viz import render_marketplace
 from dashboard.delivery_viz import render_delivery_coordination
+from dashboard.market_experiment_viz import render_market_experiment
 
 st.set_page_config(page_title="SMEConnect AI | MAS Learning Lab", page_icon="🤝", layout="wide")
 st.markdown(
@@ -98,13 +99,15 @@ def event_visual(timeline, index, buyer, seller):
 def set_step(index, count):
     st.session_state["walk_step"] = min(max(index, 0), count - 1)
 
-tab_marketplace, tab_competition, tab_delivery, tab_tour, tab_seller, tab_retailer = st.tabs(
+tab_marketplace, tab_competition, tab_delivery, tab_market, tab_tour, tab_seller, tab_retailer = st.tabs(
     ["🏬 Marketplace", "🏆 Phase 03 · Supplier Competition",
-     "🚚 Phase 04 · Delivery Coordination", "🎓 Guided Negotiation",
-     "🏪 Seller Decision Lab", "🛒 Retailer Decision Lab"]
+     "🚚 Phase 04 · Delivery Coordination", "📈 Phase 05 · Market Adaptation",
+     "🎓 Guided Negotiation", "🏪 Seller Decision Lab", "🛒 Retailer Decision Lab"]
 )
 with tab_marketplace:
     render_marketplace()
+with tab_market:
+    render_market_experiment()
 with tab_delivery:
     render_delivery_coordination()
 with tab_competition:
