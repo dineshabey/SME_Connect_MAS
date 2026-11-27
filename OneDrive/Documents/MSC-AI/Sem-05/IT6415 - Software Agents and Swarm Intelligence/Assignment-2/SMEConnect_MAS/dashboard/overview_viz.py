@@ -160,23 +160,43 @@ def render_overview() -> None:
         st.markdown("### How the agents collaborate")
         _network()
     with helper:
-        st.markdown("### Start exploring")
-        with st.container(border=True):
-            st.markdown("**01  ·  Explore marketplace**")
-            st.caption("See public listing prices and supplier availability.")
-            st.button("Open Marketplace", use_container_width=True,
-                      key="quick_market", on_click=navigate_to, args=(PAGES[1],))
-            st.divider()
-            st.markdown("**02  ·  Watch agent negotiation**")
-            st.caption("Compare seller offers and the retailer's selected supplier.")
-            st.button("Open Competition", use_container_width=True,
-                      key="quick_compete", on_click=navigate_to, args=(PAGES[2],))
-            st.divider()
-            st.markdown("**03  ·  Analyze market scenarios**")
-            st.caption("Compare controlled market shocks and measured responses.")
-            st.button("Open Analytics", use_container_width=True,
-                      key="quick_experiment", on_click=navigate_to, args=(PAGES[5],))
-        st.caption("You can reach all nine workspaces through the sidebar.")
+        st.markdown("### Explore the system")
+        st.markdown(
+            '<div class="smc-launch-intro">Choose a workflow to see actual agent '
+            'decisions, coordination or experimental evidence.</div>',
+            unsafe_allow_html=True,
+        )
+        quick_tasks = (
+            ("01", "🏬", "Marketplace",
+             "Browse sellers and their public offers.",
+             PAGES[1], "quick_market", "Explore marketplace", "market"),
+            ("02", "🤝", "Supplier competition",
+             "Watch S1 and S2 negotiate with a retailer.",
+             PAGES[2], "quick_compete", "View negotiations", "compete"),
+            ("03", "📊", "Experiment analytics",
+             "Compare measured outcomes across market changes.",
+             PAGES[5], "quick_experiment", "Open experiments", "analytics"),
+        )
+        for number, icon, title, description, destination, key, button_label, tone in quick_tasks:
+            with st.container(border=True):
+                st.markdown(
+                    f'<div class="smc-launch-item smc-launch-{tone}">'
+                    f'<div class="smc-launch-icon">{html.escape(icon)}</div>'
+                    f'<div class="smc-launch-copy">'
+                    f'<div class="smc-launch-kicker">WORKFLOW {number}</div>'
+                    f'<div class="smc-launch-title">{html.escape(title)}</div>'
+                    f'<div class="smc-launch-description">{html.escape(description)}</div>'
+                    '</div></div>',
+                    unsafe_allow_html=True,
+                )
+                st.button(
+                    f"{button_label} →",
+                    use_container_width=True,
+                    key=key,
+                    on_click=navigate_to,
+                    args=(destination,),
+                )
+        st.caption("All nine workspaces remain available in the left sidebar.")
 
     st.markdown('<div class="smc-section-title">Meet the agents</div>', unsafe_allow_html=True)
     role_colors = {
