@@ -195,6 +195,7 @@ Record Python version, package versions, revision/commit identifier, test result
 
 ## 6. Results — Verification Required
 
+<!-- PHASE05_RESULTS_START -->
 **Status at report drafting:** The experimental evaluation runner is implemented and synthetic scenario outcomes can be generated. **Complete aggregate results have not been independently executed and verified in this report-writing environment.** Do not submit placeholder values as measured outcomes.
 
 After the local evidence export runs, copy the generated `evaluation_output/RESULTS_FOR_REPORT.md` section here.
@@ -207,8 +208,9 @@ After the local evidence export runs, copy the generated `evaluation_output/RESU
 | Supplier switch rate | — | *Insert measured per-scenario rates* | — |
 
 **Expected illustrative case, not aggregate experimental evidence:** For R1 purchasing 200 packets at an initial offer Rs.150, the normal scenario can select S2 at Rs.150, whereas a synthetic S2 stock shortage (300 → 100) can make S1 the feasible choice at Rs.155. Such expected behavior must be confirmed against actual run output before it is labeled “observed.”
+<!-- PHASE05_RESULTS_END -->
 
-### 6.1 Interpreting actual findings
+### 6.2 Interpreting actual findings
 
 When results are available, report which scenarios cause supplier changes, which do not, whether price and expected gross profit trade off, and whether negotiation message counts increase or decrease. Explain outcomes by connecting them to each agent's documented constraints. Preserve all zero/no-agreement trials when computing selection rates and average gross profit; otherwise metrics become optimistically biased.
 
