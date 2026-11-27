@@ -204,3 +204,31 @@ python -m streamlit run dashboard/app.py
 - [Streamlit dashboard design](https://docs.streamlit.io/develop/concepts/design/dashboards)
 - [Streamlit multipage navigation](https://docs.streamlit.io/develop/api-reference/navigation/st.navigation)
 - [Streamlit theme configuration](https://docs.streamlit.io/develop/api-reference/configuration/config.toml)
+
+### Viva Presentation — English-only guided MAS demonstration
+
+Use **🎓 Viva Presentation** under the sidebar's **PRESENTATION** section. The new `dashboard/viva_mode.py` provides a ten-step, presenter-controlled walkthrough:
+
+1. Full conceptual architecture and LangGraph vs NetLogo/SPADE justification.
+2. Public S1/S2 seller listing prices, stock, and different goals.
+3. R1 budget, demand, strategy, and buying limits.
+4. Coordinator-assisted seller discovery and public catalogue.
+5. Actual two-seller message replay (previous/next messages) from `run_supplier_competition()`.
+6. Retailer-owned supplier choice from genuine negotiation agreements.
+7. D1 and R1 decisions from `run_delivery_coordination()`.
+8. In-memory reservation, remaining resources and duplicate-allocation rejection.
+9. Controlled stock-shortage comparison using `run_market_experiment()`.
+10. Reproducible evaluation via `run_experiment_batch()` and an MAS evidence table.
+
+The presenter uses **Previous step / Next step** to progress. Real calculations occur only when the relevant **Run** button is clicked. Slides 05–08 share the same competition and dedicated session ledger, while other workspaces' reservations remain separate. Seller private pricing constraints are not displayed as retailer-visible data. All wording inside this new page is English. It is a synthetic, sequential teaching simulation, not a production marketplace or distributed XMPP agent platform.
+
+Run:
+
+```powershell
+git pull origin main
+python -m py_compile dashboard/viva_mode.py dashboard/app.py dashboard/ui_design.py
+python -m pytest -q
+python -m streamlit run dashboard/app.py
+```
+
+During the viva, run the negotiation in step 05 before the selection/delivery stages; use the controls in steps 07 and 08 to demonstrate a successful reservation followed by a rejected duplicate attempt. Browser and complete pytest verification still need to be completed locally.
