@@ -272,3 +272,13 @@ python -m streamlit run dashboard/app.py
 ```
 
 Verify in browser: select R1 + S1/S2, 200 packets and Rs.150 initial price; Run; watch arrows/decision cards appear; pause, step forward/backward, show the final simulated result; inspect the authentic message evidence. Repeat with a rejected or infeasible scenario to demonstrate failure handling. Browser-level visual validation and full pytest execution are still required locally.
+
+#### Sequence Replay UI fixes (responsive + reactive)
+
+- **Live controls:** Changing retailer, sellers, quantity, price or rounds updates the draft agent cards on the next Streamlit widget change. For typed number inputs, press Enter or move focus to commit the value. The cards distinguish current requested quantity/offer from immutable registered demand, budget and public seller inventory.
+- **Before running:** Quantity exceeding the selected retailer's registered demand disables **Run**; a request larger than a seller's advertised stock is highlighted on that seller card. These are presentation preview checks, **not** agent decisions.
+- **Recorded run:** The animated diagram always shows the last completed run until **Run and animate agent sequence** is clicked again. Changing preview inputs does not re-run LangGraph graphs or change reservation resources.
+- **Responsive playback:** The replay iframe loads Bootstrap 5.3's grid CSS (with local flexbox/media-query fallbacks), reports its measured height to the Streamlit parent, and keeps iframe scrolling enabled as a fallback. Explanations and final results are allowed to grow without being clipped.
+- The diagram remains a synthetic, deterministic, sequential multi-agent demonstration. It shows validated messages and separately labeled internal decisions.
+
+Run `python -m pytest -q` and visually inspect both R1/R2 preview updates and the final explanatory panel before presenting.
