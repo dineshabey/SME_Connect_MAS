@@ -128,3 +128,7 @@ A fresh run is needed after changing input settings; the result panel describes 
 ### Phase 05.1 – Market Changes and Adaptation
 
 Use the **📈 Phase 05 · Market Adaptation** tab to compare real bounded negotiations under independent normal and synthetic changed-market snapshots (stock shortage, private pricing shock, demand surge). Market Agent M1 records a typed public market notification; existing LangGraph decisions are rerun with scenario-specific agent constraints. The experiment shows actual before/after supplier choices, prices and message traces, without completing orders. See [architecture](docs/architecture.md) for limitations.
+
+### Phase 05.2 — Experiment Evaluation and Evidence Export
+
+Open **🧪 Phase 05.2 · Experiments** to run reproducible, bounded paired comparisons over quantities, initial offers and synthetic market shocks. The new tool measures actual supplier selection/switching rates, expected gross profit and communication volume through existing LangGraph negotiations, then exports a public CSV trial table or JSON evaluation summary. The default deterministic grid contains 18 pairs (36 independent marketplace runs). It does not involve random sampling, live SME data, payment or order fulfilment; see [architecture](docs/architecture.md) for formulas and limitations.
