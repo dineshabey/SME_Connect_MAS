@@ -306,3 +306,9 @@ The **🔀 Sequence Replay** viewer now arranges **Current Event / Agent Decisio
 After **Run and animate agent sequence**, the embedded viewer starts playback and makes a **best-effort automatic Fullscreen API request**. Modern browsers generally disallow this because the Streamlit Run click and the iframe initialization are different browser events: user activation is not transferred. When that happens, click **▶ Start Presentation Full Screen** inside the viewer. This directly triggered button enters fullscreen and starts the recorded animation; pressing Escape exits. The existing **⬇ Download Standalone Full-Screen Replay (HTML)** is also available if Streamlit iframe permissions prohibit fullscreen.
 
 **No backend re-execution:** the Full Screen, Fit Entire Sequence, Play, and presentation controls only replay the trace already computed and do not reserve resources again.
+
+#### Sequence Replay: Hide Setup During Presentation
+
+The **▶ Run and animate agent sequence** button now executes the selected synthetic scenario **once**, then switches to **Presentation Mode** and reruns the Streamlit page with both the configuration controls and the large **Live Scenario Preview** cards hidden. The recorded animation appears near the top and uses the reclaimed page space. An **✎ Edit Scenario** button returns to the inputs and restores the last selected retailer, sellers, quantity, prices, round count and animation speed.
+
+Playback, fullscreen and returning to input editing never execute a new simulation or repeat a reservation. The agent workflow only runs on the next explicit **Run** click after valid inputs. Browser fullscreen is still subject to browser user-activation restrictions; the viewer includes a direct-click **Start Presentation Full Screen** fallback and standalone HTML download.
