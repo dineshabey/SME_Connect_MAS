@@ -312,3 +312,11 @@ After **Run and animate agent sequence**, the embedded viewer starts playback an
 The **▶ Run and animate agent sequence** button now executes the selected synthetic scenario **once**, then switches to **Presentation Mode** and reruns the Streamlit page with both the configuration controls and the large **Live Scenario Preview** cards hidden. The recorded animation appears near the top and uses the reclaimed page space. An **✎ Edit Scenario** button returns to the inputs and restores the last selected retailer, sellers, quantity, prices, round count and animation speed.
 
 Playback, fullscreen and returning to input editing never execute a new simulation or repeat a reservation. The agent workflow only runs on the next explicit **Run** click after valid inputs. Browser fullscreen is still subject to browser user-activation restrictions; the viewer includes a direct-click **Start Presentation Full Screen** fallback and standalone HTML download.
+
+#### Fixed agent-name header — inner scrolling only
+
+The detailed **Sequence Replay** uses a dedicated agent-name strip **outside** the event scroll container. For desktop displays (above 1050px), the HTML viewer is constrained to its iframe viewport, and **only the diagram message pane scrolls vertically**. The iframe uses a 900px height instead of the previous 1600px long page, avoiding inadvertent outer-page scrolling that previously made the agent-name strip disappear. The header also tracks horizontal scrolling to remain aligned with retailer/seller/coordinator/delivery lifelines.
+
+To verify: restart the Streamlit app, hard-refresh the browser, Run a sequence, choose **Detailed Sequence** (rather than Fit Entire Sequence), position the pointer inside the diagram, and scroll the message area. The agent-name strip should remain visible at the top of the diagram while the messages move. In Full Screen, the viewer continues to use viewport-constrained layout.
+
+Automated regression assertions cover header placement and CSS structure. An independent headless Chromium layout check verified that scrolling the inner message pane did not move the agent header; complete app-browser integration still requires local visual verification.
