@@ -408,7 +408,7 @@ def test_sequence_preview_reacts_without_executing_agent_graph():
     assert "Current request:" in source
     assert "Opening offer received:" in source
     assert "Expected gross margin at offer:" in source
-    assert "Agent baseline" in source
+    assert "Retailer Agent Limits" in source
     assert "Insufficient scenario stock" in source
     assert "Click Run and animate agent sequence" in source
     assert 'if run:' in source
@@ -765,3 +765,21 @@ def test_sequence_replay_warns_if_seller_policy_changes_without_rerun():
     assert "Scenario or Seller Agent policy changed — rerun required." in source
     assert "ACTUAL POLICY USED IN THIS RUN" in source
     assert "_seller_run_evidence(result)" in source
+
+
+def test_sequence_policy_notes_are_large_readable_green_explanation_panels():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    for marker in (
+        "seq-policy-box", "seq-policy-heading", "seq-policy-value",
+        "seq-policy-info", "Retailer Agent Limits",
+        "Registered Demand", "Available Budget",
+        "Seller Private Pricing Rules", "Minimum Acceptable Price",
+        "Target Selling Price", "Minimum = lowest price the seller",
+        "Shown for viva explanation only; not shared with buyer agents.",
+        "Budget = maximum funds available for buying.",
+        "font-size:22px", "font-size:24px",
+    ):
+        assert marker in source
+    assert "Private demo policy: minimum" not in source
+    assert "Agent baseline · Demand" not in source
