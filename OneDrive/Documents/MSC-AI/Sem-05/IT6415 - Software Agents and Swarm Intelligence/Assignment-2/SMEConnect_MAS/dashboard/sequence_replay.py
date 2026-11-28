@@ -152,6 +152,36 @@ button:focus-visible{outline:3px solid #d6fff0;outline-offset:2px}
 .counter{font-size:23px;color:#aef9e9;font-weight:800;margin:3px 0}
 .diagram{height:400px;overflow:auto;border:1px solid #44687f;border-radius:16px;background:
 radial-gradient(circle at 50% 20%,#163a54,#0d1e34);scroll-behavior:smooth}
+.diagram.overview-active{overflow:hidden}
+.sequence-overview{display:none;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr));
+gap:7px;padding:9px;height:100%;width:100%;min-height:0}
+.diagram.overview-active .sequence-overview{display:grid}
+.diagram.overview-active #sequence{display:none}
+.overview-event{position:relative;min-height:0;min-width:0;border:1px solid #497a94;
+border-radius:9px;padding:7px 10px;text-align:left;background:#173650;color:#e1eff9;
+display:flex;flex-direction:column;justify-content:center;gap:2px;
+overflow:hidden;cursor:pointer;transition:background .15s ease,border-color .15s ease}
+.overview-event:focus-visible{outline:3px solid #b4fff3;outline-offset:-2px}
+.overview-event.current{border:2px solid #9dfff0;background:#17666b;
+box-shadow:0 0 13px #29cfc655}
+.overview-event.future{opacity:.55}
+.overview-event.decision{border-left:4px solid #bda7fd}
+.overview-event .stepno{font-size:12px;font-weight:850;color:#93fff1;line-height:1.1}
+.overview-event .route{font-size:15px;font-weight:800;color:#fff;line-height:1.2;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.overview-event .msg{font-size:14px;font-weight:650;color:#c7e5ef;line-height:1.2;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.overview-event:not(:nth-child(3n)):after{content:'→';position:absolute;right:1px;top:45%;
+font-weight:850;color:#82edda;font-size:16px}
+.overview-caption{display:none;font-size:15px;font-weight:750;color:#a7fbe8;
+padding:0 10px 5px}
+.diagram.overview-active .overview-caption{display:block}
+@media(min-width:1200px){.overview-event .route{font-size:18px}.overview-event .msg{font-size:17px}
+.overview-event .stepno{font-size:14px}.sequence-overview{gap:10px;padding:14px}}
+@media(max-width:800px){.sequence-overview{gap:4px;padding:5px}
+.overview-event{padding:4px 5px}.overview-event .stepno{font-size:10px}
+.overview-event .route{font-size:12px}.overview-event .msg{font-size:11px}}
+
 svg{display:block;width:100%;min-width:720px}
 .detail{display:flex;flex-wrap:wrap;gap:0;margin-top:20px;align-items:stretch;margin-left:-9px;margin-right:-9px}
 .detail > .col-12{box-sizing:border-box;padding:0 9px;margin-bottom:18px;min-width:0;flex:0 0 100%;width:100%}
@@ -188,6 +218,14 @@ background:linear-gradient(110deg,#174f4d,#173c52)}
 .shell:fullscreen .diagram,.shell:-webkit-full-screen .diagram{
  flex:1 1 0;min-height:0;height:auto;overflow:hidden
 }
+.shell:fullscreen .diagram.overview-active{height:auto}
+.shell:fullscreen:has(.diagram.overview-active) .detail{display:none}
+.shell:fullscreen:has(.diagram.overview-active) .legend{display:none}
+.shell:fullscreen:has(.diagram.overview-active) .final{margin-top:8px;max-height:95px;overflow:hidden}
+.shell:fullscreen:has(.diagram.overview-active) .final p{display:none}
+.shell:fullscreen:has(.diagram.overview-active) .final .stats{gap:6px}
+.shell:fullscreen:has(.diagram.overview-active) .final .stat{min-width:0}
+
 .shell:fullscreen .detail{margin-top:10px}
 .shell:fullscreen .panel{min-height:110px;padding:12px 18px}
 .shell:fullscreen .panel h2{font-size:20px;margin:3px 0}
@@ -231,7 +269,8 @@ button[aria-pressed="true"]{background:#166b63;border-color:#8cebd9}
 <button id="fullscreen" aria-pressed="false" title="Use Escape to exit">⛶ Full Screen</button>
 <button id="fit" aria-pressed="false" title="Fit all recorded events without scrolling">⊞ Fit Entire Sequence</button>
 <span id="fullscreen-notice" role="status" aria-live="polite"></span></div>
-<div class="diagram" id="viewport"><svg id="sequence" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence of recorded agent interactions"></svg></div>
+<div class="diagram" id="viewport"><svg id="sequence" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence of recorded agent interactions"></svg><div id="sequence-overview" class="sequence-overview" role="group" aria-label="All recorded events in reading order, left to right and top to bottom"></div></div>
+<div class="overview-caption" id="overview-caption">Reading order: left → right, then next row ↓ · Select an event to inspect its explanation.</div>
 <div class="row g-3 detail">
 <div class="col-12 col-xl-5"><section class="panel"><div class="kicker">CURRENT EVENT</div><h2 id="title"></h2>
 <p id="message"></p><p id="round"></p></section></div>
@@ -272,6 +311,7 @@ const chosen=new Map(actors.map((v,i)=>[v,i]));
 let index=0,timer=null,fitAll=false;
 const shell=document.querySelector(".shell"),fullButton=document.getElementById("fullscreen");
 const fitButton=document.getElementById("fit");
+const overview=document.getElementById("sequence-overview");
 function isFullscreen(){return document.fullscreenElement===shell||document.webkitFullscreenElement===shell}
 function refreshFullscreen(){
  const full=isFullscreen();
@@ -300,7 +340,33 @@ async function toggleFullscreen(){
 }
 function updateFitButton(){
  fitButton.setAttribute("aria-pressed",String(fitAll));
- fitButton.textContent=fitAll?"◉ Follow Current Event":"⊞ Fit Entire Sequence";
+ fitButton.textContent=fitAll?"◉ Detailed Sequence":"⊞ Fit Entire Sequence";
+ viewport.classList.toggle("overview-active",fitAll);
+ // The overview is a chronological 3-column storyboard, not a shrunken SVG.
+ document.getElementById("overview-caption").style.display=fitAll?"block":"none";
+}
+function renderOverview(){
+ overview.replaceChildren();
+ ev.forEach((item,j)=>{
+   const card=document.createElement("button");
+   card.type="button";
+   card.className="overview-event "+(item.kind==="decision"?"decision ":"")+
+     (j===index?"current":j>index?"future":"");
+   const row=document.createElement("span");row.className="stepno";
+   row.textContent="EVENT "+String(j+1).padStart(2,"0")+" · "+item.phase;
+   const route=document.createElement("span");route.className="route";
+   route.textContent=item.kind==="message"
+     ?item.sender+" → "+item.receiver
+     :"◆ "+item.sender+" decision";
+   const msg=document.createElement("span");msg.className="msg";
+   msg.textContent=item.label||item.action;
+   card.title=item.description||"";
+   card.setAttribute("aria-label","Event "+(j+1)+": "+route.textContent+
+       ". "+msg.textContent+". Select to view details.");
+   card.append(row,route,msg);
+   card.onclick=()=>{stop();step(j)};
+   overview.appendChild(card);
+ });
 }
 fullButton.onclick=toggleFullscreen;
 fitButton.onclick=()=>{fitAll=!fitAll;updateFitButton();draw()};
@@ -316,6 +382,12 @@ function element(tag,attrs={},text=""){
 function append(parent,tag,attrs,text){const el=element(tag,attrs,text);parent.appendChild(el);return el}
 function isMsg(item){return item.kind==="message" && chosen.has(item.sender)&&chosen.has(item.receiver)}
 function draw(){
+ viewport.classList.toggle("overview-active",fitAll);
+ if(fitAll){
+   renderOverview();
+   viewport.scrollTop=0;viewport.scrollLeft=0;
+   return;
+ }
  svg.replaceChildren();svg.setAttribute("viewBox",`0 0 1220 ${H}`);
  svg.setAttribute("preserveAspectRatio","xMidYMin meet");
  svg.setAttribute("height",String(fitAll?Math.max(180,viewport.clientHeight):H));
