@@ -388,7 +388,7 @@ def test_sequence_configuration_is_live_and_run_is_independent():
 def test_sequence_iframe_accommodates_large_explanation_and_final_result():
     source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
     ast.parse(source)
-    assert 'height=1600, scrolling=True' in source
+    assert 'height=900, scrolling=True' in source
     assert 'type:"streamlit:setFrameHeight"' in source
     assert "ResizeObserver(resizeFrame)" in source
     assert "bootstrap@5.3.8/dist/css/bootstrap-grid.min.css" in source
@@ -452,7 +452,7 @@ def test_sequence_fullscreen_and_fit_controls_are_real_and_replay_only():
         'Fit Entire Sequence', 'shell.requestFullscreen()',
         'document.exitFullscreen()', 'document.addEventListener("fullscreenchange"',
         'fitAll=true', 'if(fitAll){', 'svg.setAttribute("preserveAspectRatio"',
-        'height=1600, scrolling=True', 'st.download_button(',
+        'height=900, scrolling=True', 'st.download_button(',
         'SMEConnect_Sequence_Replay.html',
     ):
         assert required in source
@@ -580,3 +580,17 @@ def test_sequence_agent_names_remain_fixed_outside_scrollable_diagram():
     assert header_pos < viewport_pos
     assert 'id="sticky-agent-header"' not in html
     assert 'position:sticky' not in html
+
+
+def test_sequence_desktop_only_message_pane_scrolls_and_header_remains_visible():
+    src = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(src)
+    for marker in (
+        '@media (min-width:1051px)',
+        'html,body{height:100%;overflow:hidden}',
+        '.shell:not(:fullscreen) .presentation-stage .diagram{',
+        'flex:1 1 0;min-height:0;height:auto;overflow:auto',
+        '.agent-header-viewport{position:sticky;top:0;z-index:30}',
+        'components.html(sequence_document, height=900, scrolling=True)',
+    ):
+        assert marker in src
