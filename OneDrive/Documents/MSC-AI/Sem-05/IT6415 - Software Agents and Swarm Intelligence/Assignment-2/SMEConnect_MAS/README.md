@@ -282,3 +282,11 @@ Verify in browser: select R1 + S1/S2, 200 packets and Rs.150 initial price; Run;
 - The diagram remains a synthetic, deterministic, sequential multi-agent demonstration. It shows validated messages and separately labeled internal decisions.
 
 Run `python -m pytest -q` and visually inspect both R1/R2 preview updates and the final explanatory panel before presenting.
+
+#### Full Screen & Fit Entire Sequence (viva mode)
+
+The **🔀 Sequence Replay** viewer now includes **⛶ Full Screen**, **⊞ Fit Entire Sequence**, and **◉ Follow Current Event** alongside the existing replay controls. Full Screen attempts the browser Fullscreen API from a direct user click. Fit Entire Sequence scales all recorded events into the diagram viewport without internal scrolling; Follow Current Event restores the larger, scroll-following detail view. Replay and display modes never execute simulations or repeat reservations.
+
+**Browser compatibility:** Streamlit embeds the sequence in a sandboxed iframe. Some browser/Streamlit builds block Fullscreen API permission from that iframe. The app therefore provides **⬇ Download Standalone Full-Screen Replay (HTML)** under the viewer. Download and open the file in Chrome/Edge, then use its Full Screen button (or F11 for browser fullscreen). The file contains the same already-recorded synthetic events and requires no Python runtime to replay. Bootstrap CSS is optional; the embedded viewer contains local fallback styles.
+
+For projector use, Fit Entire Sequence shows all events at once, but many event labels may be small. Switch to Follow Current Event for readable event-by-event explanations.
