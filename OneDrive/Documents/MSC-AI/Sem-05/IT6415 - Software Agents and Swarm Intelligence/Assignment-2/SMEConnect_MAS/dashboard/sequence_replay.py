@@ -157,6 +157,33 @@ radial-gradient(circle at 50% 20%,#163a54,#0d1e34);scroll-behavior:smooth}
 gap:7px;padding:9px;height:100%;width:100%;min-height:0}
 .diagram.overview-active .sequence-overview{display:grid}
 .diagram.overview-active #sequence{display:none}
+/* Desktop replay is a single viewport: only messages scroll vertically.
+   This avoids Streamlit's 1600px outer iframe/page scroll hiding agent names. */
+@media (min-width:1051px){
+  html,body{height:100%;overflow:hidden}
+  .shell:not(:fullscreen){
+    height:100dvh;max-height:100dvh;display:flex;flex-direction:column;
+    overflow:hidden
+  }
+  .shell:not(:fullscreen) .top,
+  .shell:not(:fullscreen) .legend,
+  .shell:not(:fullscreen) .controls{flex:0 0 auto}
+  .shell:not(:fullscreen) .presentation-layout{
+    flex:1 1 0;min-height:0;height:auto;max-height:100%;
+    overflow:hidden
+  }
+  .shell:not(:fullscreen) .presentation-stage{
+    height:100%;min-height:0;overflow:hidden
+  }
+  .shell:not(:fullscreen) .presentation-stage .diagram{
+    flex:1 1 0;min-height:0;height:auto;overflow:auto
+  }
+  .shell:not(:fullscreen) .presentation-side{
+    height:100%;max-height:100%;min-height:0;overflow-y:auto
+  }
+}
+/* Remains visible when either inner event scroller or outer presentation scrolls. */
+.agent-header-viewport{position:sticky;top:0;z-index:30}
 /* Header is OUTSIDE the scrollable diagram; vertical scrolling cannot move it. */
 .agent-header-viewport{height:85px;position:relative;overflow:hidden;
  border:1px solid #446f86;border-bottom:0;border-radius:14px 14px 0 0;
@@ -933,7 +960,7 @@ def render_sequence_replay():
     sequence_document = _sequence_html(
         result["sequence_events"], lifelines, summary, result["sequence_speed"]
     )
-    components.html(sequence_document, height=1600, scrolling=True)
+    components.html(sequence_document, height=900, scrolling=True)
     st.download_button(
         "⬇ Download Standalone Full-Screen Replay (HTML)",
         data=sequence_document,
