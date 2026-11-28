@@ -409,7 +409,7 @@ def test_sequence_preview_reacts_without_executing_agent_graph():
     assert "Opening offer received:" in source
     assert "Expected gross margin at offer:" in source
     assert "Agent baseline" in source
-    assert "Insufficient advertised stock" in source
+    assert "Insufficient scenario stock" in source
     assert "Click Run and animate agent sequence" in source
     assert 'if run:' in source
     assert 'run_result = _run_session(' in source
