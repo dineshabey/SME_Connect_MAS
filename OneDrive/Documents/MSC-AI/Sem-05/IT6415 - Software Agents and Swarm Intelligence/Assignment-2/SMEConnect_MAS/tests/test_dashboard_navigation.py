@@ -954,3 +954,43 @@ def test_agent_network_diagram_has_projector_readable_responsive_nodes():
         "@media(max-width:800px)",
     ):
         assert marker in source
+
+
+def test_delivery_agent_preview_card_shows_real_capacity_and_trip_fee():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    for marker in (
+        'aria-label="Delivery Agent D1 preview"',
+        'Delivery Agent D1',
+        'Available Capacity',
+        'Delivery Fee per Trip',
+        'Requested Quantity',
+        'delivery.cost_per_trip',
+        'delivery.capacity',
+        'The Delivery Agent makes its',
+        '.seq-delivery-card{',
+        '.seq-delivery-metrics{display:grid;',
+    ):
+        assert marker in source
+    assert 'delivery = next(a for a in build_agents() if a.role == "delivery"' in source
+
+
+def test_final_result_distinguishes_product_cost_delivery_quote_and_total():
+    from dashboard.sequence_replay import _final_decision_html
+    from dashboard.workflow_simulator import _run_session
+
+    run = _run_session("R1", ["S1", "S2"], 200, 150, 150, 5, 200)
+    card = _final_decision_html(run)
+    assert run["coordination"]["status"] == "RESERVED_SIMULATED"
+    assert "PRODUCT COST" in card
+    assert "DELIVERY FEE (D1)" in card
+    assert "SIMULATED ORDER TOTAL (INCLUDING DELIVERY)" in card
+    assert "Rs.30,000.00" in card
+    assert "Rs.1,000.00" in card
+    assert "Rs.31,000.00" in card
+
+    declined = _run_session("R1", ["S1"], 200, 100, 100, 2, 200)
+    failed_card = _final_decision_html(declined)
+    assert "Not quoted" in failed_card
+    assert "Not reserved" in failed_card
+    assert "SIMULATED ORDER RESERVED" not in failed_card
