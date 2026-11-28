@@ -755,3 +755,13 @@ def test_seller_evidence_is_clearly_separated_from_public_messages():
         'run_result["seller_policy_evidence"] = _seller_run_evidence(run_result)',
     ):
         assert marker in source
+
+
+def test_sequence_replay_warns_if_seller_policy_changes_without_rerun():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert 'st.session_state.get("seq_preview_revision", 0)' in source
+    assert 'st.session_state.get("seq_last_run_revision", 0)' in source
+    assert "Scenario or Seller Agent policy changed — rerun required." in source
+    assert "ACTUAL POLICY USED IN THIS RUN" in source
+    assert "_seller_run_evidence(result)" in source
