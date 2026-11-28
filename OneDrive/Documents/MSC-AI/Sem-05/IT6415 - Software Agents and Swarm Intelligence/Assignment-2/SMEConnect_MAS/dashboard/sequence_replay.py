@@ -792,6 +792,39 @@ def _compare_seller_runs(previous: dict, current: dict) -> list[dict]:
     return rows
 
 
+def _final_decision_html(run: dict) -> str:
+    """Large, readable outcome card based only on recorded simulation results."""
+    selection = run["competition"]["selection"]
+    coordination = run["coordination"]
+    seller_id = selection.get("selected_seller_id")
+    reservation = coordination.get("reservation")
+    status = coordination["status"]
+    success = status == "RESERVED_SIMULATED" and reservation is not None
+    status_text = "SIMULATED ORDER RESERVED" if success else status.replace("_", " ")
+    seller_text = _agent_label(seller_id) if seller_id else "No supplier selected"
+    quantity_text = f"{reservation['quantity']:,} packets" if success else "Not reserved"
+    total_text = f"Rs.{reservation['reserved_total']:,.2f}" if success else "Not reserved"
+    agreed_price = selection.get("selected_price")
+    price_text = f"Rs.{agreed_price:,.2f}" if agreed_price is not None else "No agreement"
+    reason = coordination.get("reason", "")
+    tone = "success" if success else "attention"
+    return f"""
+    <div class="seq-result-card {tone}" role="status" aria-label="Final multi-agent decision">
+      <div class="seq-result-kicker">🏁 FINAL MULTI-AGENT DECISION</div>
+      <div class="seq-result-headline">{escape(status_text)}</div>
+      <div class="seq-result-grid">
+        <div><span>RETAILER-SELECTED SUPPLIER</span><strong>{escape(seller_text)}</strong></div>
+        <div><span>FINAL COORDINATION STATUS</span><strong>{escape(status)}</strong></div>
+        <div><span>NEGOTIATED UNIT PRICE</span><strong>{escape(price_text)}</strong></div>
+        <div><span>RESERVED QUANTITY</span><strong>{escape(quantity_text)}</strong></div>
+        <div><span>SIMULATED ORDER TOTAL</span><strong>{escape(total_text)}</strong></div>
+      </div>
+      <p class="seq-result-reason">{escape(str(reason))}</p>
+      <p class="seq-result-disclaimer">Synthetic simulation only · No real order, payment or delivery.</p>
+    </div>
+    """
+
+
 def _sequence_preview_changed() -> None:
     """Mark current controls as a draft; never execute agent logic in callbacks."""
     st.session_state["seq_preview_revision"] = (
@@ -1196,6 +1229,31 @@ def render_sequence_replay():
              "Streamlit iframe permissions. No external simulation is executed.",
         key="seq_download_fullscreen",
     )
+    st.markdown("""
+    <style>
+      .seq-result-card{margin:22px 0 28px;padding:27px 30px;border-radius:20px;
+        border:2px solid #4ed4a6;background:linear-gradient(120deg,#115444,#173d51);
+        box-shadow:0 16px 30px rgba(0,0,0,.25);color:#f5fffc}
+      .seq-result-card.attention{border-color:#f2b46a;
+        background:linear-gradient(120deg,#51402f,#283c52)}
+      .seq-result-kicker{color:#c3ffe6;font-size:21px;font-weight:850;letter-spacing:.05em}
+      .seq-result-headline{font-size:clamp(28px,2.5vw,43px);
+        font-weight:900;margin:12px 0 24px;line-height:1.2;color:#fff}
+      .seq-result-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+      .seq-result-grid>div{background:rgba(6,29,35,.52);border:1px solid #65aeaa;
+        border-radius:12px;padding:17px;min-width:0}
+      .seq-result-grid span{display:block;color:#c5fce9;font-size:17px;font-weight:800;
+        letter-spacing:.02em}
+      .seq-result-grid strong{display:block;font-size:clamp(22px,1.6vw,29px);
+        color:white;margin-top:8px;overflow-wrap:anywhere}
+      .seq-result-reason{font-size:20px!important;line-height:1.5;margin:21px 0 8px}
+      .seq-result-disclaimer{font-size:16px!important;color:#d4ece7;margin:0}
+      @media(max-width:950px){.seq-result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+      @media(max-width:600px){.seq-result-grid{grid-template-columns:1fr}
+        .seq-result-card{padding:18px}}
+    </style>
+    """, unsafe_allow_html=True)
+    st.markdown(_final_decision_html(result), unsafe_allow_html=True)
     with st.expander("✅ Seller policy verification — actual values used in this run", expanded=True):
         st.caption(
             "Verified from the Seller Agent objects recorded by LangGraph negotiation "
@@ -1210,11 +1268,6 @@ def render_sequence_replay():
                 "negotiation_status", "agreed_price", "selected",
                 "reserved_packets", "remaining_stock",
             ],
-        )
-        st.markdown(
-            f"**Retailer-selected supplier:** "
-            f"{result['competition']['selection']['selected_seller_id'] or 'None'} "
-            f"· **Final coordination status:** {result['coordination']['status']}"
         )
         if result.get("previous_comparison"):
             st.markdown("#### Previous Run vs Current Run")
