@@ -342,6 +342,7 @@ button[aria-pressed="true"]{background:#166b63;border-color:#8cebd9}
 <button id="next">Next →</button><button id="restart">↺ Restart</button>
 <button id="end">Show final result</button>
 <button id="fullscreen" aria-pressed="false" title="Use Escape to exit">⛶ Full Screen</button>
+<button id="present" class="primary" title="Start animation in full screen">▶ Start Presentation Full Screen</button>
 <button id="fit" aria-pressed="false" title="Fit all recorded events without scrolling">⊞ Fit Entire Sequence</button>
 <span id="fullscreen-notice" role="status" aria-live="polite"></span></div>
 <div class="presentation-layout">
@@ -391,12 +392,15 @@ const chosen=new Map(actors.map((v,i)=>[v,i]));
 let index=0,timer=null,fitAll=false;
 const shell=document.querySelector(".shell"),fullButton=document.getElementById("fullscreen");
 const fitButton=document.getElementById("fit");
+const presentButton=document.getElementById("present");
+let fullscreenAttempted=false;
 const overview=document.getElementById("sequence-overview");
 function isFullscreen(){return document.fullscreenElement===shell||document.webkitFullscreenElement===shell}
 function refreshFullscreen(){
  const full=isFullscreen();
  fullButton.textContent=full?"⛶ Exit Full Screen":"⛶ Full Screen";
  fullButton.setAttribute("aria-pressed",String(full));
+ presentButton.hidden=full;
  if(full){fitAll=true;updateFitButton()}
  requestAnimationFrame(draw);
 }
@@ -418,6 +422,25 @@ async function toggleFullscreen(){
    notice.textContent="Browser blocked full screen. Use Fit Entire Sequence, or open the standalone HTML.";
  }
 }
+async function tryAutomaticFullscreen(){
+ // Streamlit's Python Run click normally cannot transfer browser user activation
+ // through rerun into an iframe. Best-effort only, with a one-click fallback.
+ if(fullscreenAttempted||isFullscreen())return;
+ fullscreenAttempted=true;
+ try{
+   if(shell.requestFullscreen)await shell.requestFullscreen();
+   else if(shell.webkitRequestFullscreen)shell.webkitRequestFullscreen();
+   else throw new Error("Fullscreen unsupported");
+ }catch(error){
+   document.getElementById("fullscreen-notice").textContent=
+     "Browser requires a direct click: use Start Presentation Full Screen.";
+ }
+}
+function launchPresentation(){
+ stop();index=0;show();start();
+ if(!isFullscreen())toggleFullscreen();
+}
+presentButton.onclick=launchPresentation;
 function updateFitButton(){
  fitButton.setAttribute("aria-pressed",String(fitAll));
  fitButton.textContent=fitAll?"◉ Detailed Sequence":"⊞ Fit Entire Sequence";
@@ -591,7 +614,10 @@ document.getElementById("toggle").onclick=()=>timer===null?start():stop();
 show();
 updateFitButton();
 requestAnimationFrame(resizeFrame);
+// Run starts the recorded animation. Automatic full screen is attempted once,
+// but browsers typically reject it without a click inside this iframe.
 if(!reduced)start();
+requestAnimationFrame(tryAutomaticFullscreen);
 </script></body></html>'''
     return page.replace("__DATA__", payload)
 
