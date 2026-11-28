@@ -342,3 +342,14 @@ Changing an editor value without pressing Run displays **Scenario or Seller Agen
 Run the full suite with `python -m pytest -q` and specifically review:
 `python -m pytest tests/test_dashboard_navigation.py -k "seller_popup or seller_price_changes or seller_policy_evidence or seller_evidence" -v`.
 The two-seller test checks that raising both minima above the initial offer results in no agreement and no stock mutation; the one-seller price change case checks a change in supplier selection, real negotiated reservation and corresponding stock allocations.
+
+#### IT6415 viva summary aligned with Professor Asoka Karunananda's original B18 lecture
+
+The **🔀 Sequence Replay** ending now follows the professor's own terminology and hierarchy, rather than incorrectly presenting eight concepts as eight essential MAS features.
+
+- **Slide 119 (Topic 4): exactly THREE essential MAS features:** (1) **Communication** — addressed, typed in-memory messages between retailer, sellers, C1 and D1; (2) **Coordination** — C1's discovery, delivery quote/approval workflow and session-only all-or-none reservation to meet shared resource constraints; (3) **Negotiation** — independent retailer–seller offer, counteroffer, acceptance/rejection and supplier selection. Slides 120–131 explain ACL communication, peer-to-peer/broadcast/blackboard modes, coordination (avoid chaos and waste), contracting and negotiation. The demonstration uses only structured FIPA-inspired message actions over its own Python message bus; it does **not** implement a fully compliant KQML protocol.
+- **Slide 35 (Topic 1): characteristics of individual agents, shown separately:** Situatedness, Working for a master/owner, Autonomy, Adaptivity (reactive behaviour), Sociability. Learning, proactive autonomous goals and mobile-agent migration are explicitly **not** claimed. CPU/memory efficiency and emergence/self-organization are not experimentally validated here.
+- **Slide 96:** Seller competition/independent objectives illustrate **Self-Interested MAS (SMAS)**. Delivery/coordination also provide cooperative interactions; the classification is not a claim that the entire simulation is distributed.
+- **Slide 133:** Implementation is sequential single-process **orchestration** with bilateral message-driven negotiations and a coordinator, not a truly decentralized peer-to-peer deployment.
+
+Reference: *Software Agents and Swarm Intelligence-B18-2026.ppt (1).pdf*, Prof. Asoka Karunananda, slides 35, 96, 119–131, 133. The UI retains the seven registered agent roles above the workflow and places the corrected essential-features + individual-traits + architecture summary at the end.
