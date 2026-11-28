@@ -207,6 +207,81 @@ background:linear-gradient(110deg,#174f4d,#173c52)}
 .detail .panel{height:100%;min-height:270px;overflow:visible;overflow-wrap:anywhere}
 #decision-panel #reason{overflow-wrap:anywhere;white-space:normal}
 .final p{font-size:21px;line-height:1.6}
+/* Presenter cockpit: event explanations on the left, diagrams on the right. */
+.presentation-layout{display:grid;grid-template-columns:minmax(280px,30%) minmax(0,1fr);
+  gap:16px;min-height:590px;margin-top:12px;align-items:stretch}
+.presentation-side{min-width:0;display:flex;flex-direction:column;gap:12px;max-height:690px}
+.presentation-stage{min-width:0;min-height:0;display:flex;flex-direction:column}
+.presentation-stage .diagram{height:650px;min-height:400px;flex:1}
+.presentation-side .detail{display:flex;flex-direction:column;gap:12px;
+  margin:0;flex:none;min-height:0}
+.presentation-side .detail>.col-12,.presentation-side .detail>.col-xl-5,
+.presentation-side .detail>.col-xl-7{width:100%!important;flex:0 0 auto!important;
+  max-width:none!important;padding:0!important;margin:0}
+.presentation-side .panel{padding:17px 19px;min-height:0;height:auto}
+.presentation-side .panel h2{font-size:22px;line-height:1.35}
+.presentation-side .panel p{font-size:18px;line-height:1.45}
+.presentation-side #reason{font-size:20px!important;line-height:1.45}
+.presentation-side #impact{font-size:17px!important;line-height:1.35}
+.presentation-side .kicker{font-size:15px}
+.presentation-side .explain-extra{margin-top:10px;padding-top:9px}
+.presentation-side .small{font-size:14px!important}
+.presentation-side .final{margin-top:0;padding:12px 15px}
+.presentation-side .final h2{font-size:20px}
+.presentation-side .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.presentation-side .stat{min-width:0;padding:9px}
+.presentation-side .stat span{font-size:13px}
+.presentation-side .stat b{font-size:18px;overflow-wrap:anywhere}
+.presentation-side .final p{font-size:14px}
+@media(max-width:1050px){
+  .presentation-layout{grid-template-columns:1fr;display:flex;flex-direction:column}
+  .presentation-stage{order:0}.presentation-side{order:1;max-height:none}
+  .presentation-stage .diagram{height:450px;flex:auto}
+}
+.shell:fullscreen,.shell:-webkit-full-screen{height:100dvh;overflow:hidden}
+.shell:fullscreen .presentation-layout,.shell:-webkit-full-screen .presentation-layout{
+ flex:1 1 0;min-height:0;max-height:100%;display:grid;
+ grid-template-columns:clamp(295px,29vw,440px) minmax(0,1fr);gap:14px;
+ margin-top:4px;overflow:hidden
+}
+.shell:fullscreen .presentation-stage{height:100%;min-height:0}
+.shell:fullscreen .presentation-stage .diagram{flex:1 1 0;min-height:0;height:auto;overflow:hidden}
+.shell:fullscreen .presentation-side{max-height:100%;min-height:0;overflow:hidden;
+ display:flex;flex-direction:column;gap:8px}
+.shell:fullscreen .presentation-side .detail{display:flex!important;flex-direction:column;gap:7px}
+.shell:fullscreen .presentation-side .detail>.col-12{flex:0 0 auto!important}
+.shell:fullscreen .presentation-side .panel{min-height:0;height:auto;padding:10px 13px}
+.shell:fullscreen .presentation-side .panel h2{font-size:clamp(14px,1.4vw,19px)}
+.shell:fullscreen .presentation-side .panel p{font-size:clamp(12px,1.1vw,16px);line-height:1.25}
+.shell:fullscreen .presentation-side #reason{font-size:clamp(13px,1.1vw,16px)!important;line-height:1.25}
+.shell:fullscreen .presentation-side #impact{font-size:clamp(12px,1vw,15px)!important;line-height:1.25}
+.shell:fullscreen .presentation-side .kicker{font-size:12px}
+.shell:fullscreen .presentation-side .explain-extra{margin-top:5px;padding-top:5px}
+.shell:fullscreen .presentation-side .explain-extra strong{font-size:12px}
+.shell:fullscreen .presentation-side .small{font-size:11px!important}
+.shell:fullscreen .presentation-side .final{display:block!important;margin-top:0;
+ padding:8px 10px;flex:0 1 auto;min-height:0;overflow:hidden}
+.shell:fullscreen .presentation-side .final[hidden]{display:none!important}
+.shell:fullscreen .presentation-side .final h2{font-size:15px}
+.shell:fullscreen .presentation-side .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.shell:fullscreen .presentation-side .stat{min-width:0;padding:4px 6px}
+.shell:fullscreen .presentation-side .stat span{font-size:11px}
+.shell:fullscreen .presentation-side .stat b{font-size:15px}
+.shell:fullscreen .presentation-side .final p{font-size:11px;margin:3px 0}
+.shell:fullscreen .overview-event .route{font-size:clamp(13px,1.1vw,19px)}
+.shell:fullscreen .overview-event .msg{font-size:clamp(12px,1vw,17px)}
+.shell:fullscreen:has(.diagram.overview-active) .presentation-side .detail{display:flex!important}
+.shell:fullscreen:has(.diagram.overview-active) .presentation-side .final{max-height:none;overflow:hidden}
+.shell:fullscreen:has(.diagram.overview-active) .presentation-side .final p{display:block}
+@media(max-height:760px){
+ .shell:fullscreen .presentation-side .small,.shell:fullscreen .presentation-side #provenance{display:none}
+ .shell:fullscreen .presentation-side .final p{display:none}
+ .shell:fullscreen .presentation-side .panel{padding:7px 10px}
+ .shell:fullscreen .presentation-side .explain-extra{margin-top:3px;padding-top:3px}
+ .shell:fullscreen .presentation-side{gap:5px}
+ .shell:fullscreen .top .sub{display:none}
+}
+
 /* Full-screen presentation: all lifelines and events fit the visible screen. */
 .shell:fullscreen,.shell:-webkit-full-screen{
  width:100vw;height:100vh;max-width:none;margin:0;border-radius:0;
@@ -219,10 +294,10 @@ background:linear-gradient(110deg,#174f4d,#173c52)}
  flex:1 1 0;min-height:0;height:auto;overflow:hidden
 }
 .shell:fullscreen .diagram.overview-active{height:auto}
-.shell:fullscreen:has(.diagram.overview-active) .detail{display:none}
+.shell:fullscreen:has(.diagram.overview-active) .detail{display:flex}
 .shell:fullscreen:has(.diagram.overview-active) .legend{display:none}
-.shell:fullscreen:has(.diagram.overview-active) .final{margin-top:8px;max-height:95px;overflow:hidden}
-.shell:fullscreen:has(.diagram.overview-active) .final p{display:none}
+.shell:fullscreen:has(.diagram.overview-active) .final{margin-top:0;max-height:none;overflow:hidden}
+.shell:fullscreen:has(.diagram.overview-active) .final p{display:block}
 .shell:fullscreen:has(.diagram.overview-active) .final .stats{gap:6px}
 .shell:fullscreen:has(.diagram.overview-active) .final .stat{min-width:0}
 
@@ -269,8 +344,8 @@ button[aria-pressed="true"]{background:#166b63;border-color:#8cebd9}
 <button id="fullscreen" aria-pressed="false" title="Use Escape to exit">⛶ Full Screen</button>
 <button id="fit" aria-pressed="false" title="Fit all recorded events without scrolling">⊞ Fit Entire Sequence</button>
 <span id="fullscreen-notice" role="status" aria-live="polite"></span></div>
-<div class="diagram" id="viewport"><svg id="sequence" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence of recorded agent interactions"></svg><div id="sequence-overview" class="sequence-overview" role="group" aria-label="All recorded events in reading order, left to right and top to bottom"></div></div>
-<div class="overview-caption" id="overview-caption">Reading order: left → right, then next row ↓ · Select an event to inspect its explanation.</div>
+<div class="presentation-layout">
+<aside class="presentation-side" aria-label="Current agent decision and final result">
 <div class="row g-3 detail">
 <div class="col-12 col-xl-5"><section class="panel"><div class="kicker">CURRENT EVENT</div><h2 id="title"></h2>
 <p id="message"></p><p id="round"></p></section></div>
@@ -278,7 +353,12 @@ button[aria-pressed="true"]{background:#166b63;border-color:#8cebd9}
 <div class="kicker">AGENT DECISION EXPLAINED</div><h2 id="why-title">Why did it happen?</h2>
 <p id="reason"></p><div class="explain-extra"><strong id="impact-label">What happened next?</strong>
 <p id="impact"></p></div><p class="small" id="provenance"></p></section></div>
-</div><section id="final" class="final" hidden></section></main>
+</div><section id="final" class="final" hidden></section>
+</aside>
+<div class="presentation-stage">
+<div class="diagram" id="viewport"><svg id="sequence" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence of recorded agent interactions"></svg><div id="sequence-overview" class="sequence-overview" role="group" aria-label="All recorded events in reading order, left to right and top to bottom"></div></div>
+<div class="overview-caption" id="overview-caption">Reading order: left → right, then next row ↓ · Select an event to inspect its explanation.</div>
+</div></div></main>
 <script>
 const model=__DATA__;
 const ev=model.events,actors=model.actors;
