@@ -158,7 +158,7 @@ def test_interactive_workflow_simulator_is_a_real_routed_workspace():
     for marker in (
         "st.form(", "st.form_submit_button(",
         "run_supplier_competition(", "run_delivery_coordination(",
-        "ReservationLedger.from_marketplace()", "neon_scene(",
+        "ReservationLedger.from_marketplace(market_state)", "neon_scene(",
         "st.session_state", "time.sleep(", "wf_index",
         "Play to final outcome", "Final multi-agent decision",
         'st.session_state["wf_autoplay"] = True',
