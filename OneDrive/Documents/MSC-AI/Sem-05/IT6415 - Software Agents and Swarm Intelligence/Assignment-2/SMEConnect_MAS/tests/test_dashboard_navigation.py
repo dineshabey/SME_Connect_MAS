@@ -560,3 +560,17 @@ def test_sequence_edit_scenario_restores_previous_input_values():
         "seq_target", "seq_rounds", "seq_resale", "seq_speed",
     ):
         assert '"'+key+'":' in source
+
+
+def test_sequence_agent_names_remain_sticky_while_messages_scroll():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert 'id="sticky-agent-header"' in source
+    assert '.sticky-agent-header{position:sticky;top:0;' in source
+    assert '.sticky-agent-label{position:absolute;' in source
+    assert 'function renderStickyAgentHeader(){' in source
+    assert 'label.textContent=actorLabel(agent);' in source
+    assert 'label.style.left=(x(j)/1220*100)+"%";' in source
+    assert 'renderStickyAgentHeader();' in source
+    assert '.diagram.overview-active .sticky-agent-header{display:none}' in source
+    assert 'const cx=x(j);' in source  # Lifelines still align with pinned labels
