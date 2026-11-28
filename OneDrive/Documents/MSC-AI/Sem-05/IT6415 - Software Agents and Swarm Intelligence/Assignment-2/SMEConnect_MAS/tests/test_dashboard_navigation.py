@@ -547,3 +547,16 @@ def test_sequence_run_enters_presentation_mode_and_hides_setup():
     )[0]
     assert '_run_session(' not in edit_block
     assert 'st.session_state["seq_presenting"] = False' in edit_block
+
+
+def test_sequence_edit_scenario_restores_previous_input_values():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert 'st.session_state["seq_saved_controls"] = {' in source
+    assert 'st.session_state.pop("seq_restore_inputs", False)' in source
+    assert 'st.session_state["seq_restore_inputs"] = True' in source
+    for key in (
+        "seq_retailer", "seq_sellers", "seq_quantity", "seq_offer",
+        "seq_target", "seq_rounds", "seq_resale", "seq_speed",
+    ):
+        assert '"'+key+'":' in source
