@@ -157,6 +157,20 @@ radial-gradient(circle at 50% 20%,#163a54,#0d1e34);scroll-behavior:smooth}
 gap:7px;padding:9px;height:100%;width:100%;min-height:0}
 .diagram.overview-active .sequence-overview{display:grid}
 .diagram.overview-active #sequence{display:none}
+.diagram.overview-active .sticky-agent-header{display:none}
+/* Agent identities remain pinned while the message lifelines scroll beneath. */
+.sticky-agent-header{position:sticky;top:0;z-index:12;display:block;
+  width:100%;min-width:720px;height:91px;margin-bottom:-91px;
+  background:linear-gradient(180deg,#10263e 75%,rgba(16,38,62,.95));
+  border-bottom:1px solid #43738a;pointer-events:none}
+.sticky-agent-label{position:absolute;top:8px;transform:translateX(-50%);
+  width:clamp(95px,13vw,205px);min-height:63px;padding:9px 7px;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  border:1px solid #75bfd2;border-radius:12px;background:#23536d;
+  box-shadow:0 5px 14px #061829a8;
+  color:#fff;font-size:clamp(11px,1.1vw,18px);font-weight:800;line-height:1.2}
+.shell:fullscreen .sticky-agent-label{font-size:clamp(11px,1vw,17px)}
+
 .overview-event{position:relative;min-height:0;min-width:0;border:1px solid #497a94;
 border-radius:9px;padding:7px 10px;text-align:left;background:#173650;color:#e1eff9;
 display:flex;flex-direction:column;justify-content:center;gap:2px;
@@ -357,7 +371,7 @@ button[aria-pressed="true"]{background:#166b63;border-color:#8cebd9}
 </div><section id="final" class="final" hidden></section>
 </aside>
 <div class="presentation-stage">
-<div class="diagram" id="viewport"><svg id="sequence" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence of recorded agent interactions"></svg><div id="sequence-overview" class="sequence-overview" role="group" aria-label="All recorded events in reading order, left to right and top to bottom"></div></div>
+<div class="diagram" id="viewport"><div class="sticky-agent-header" id="sticky-agent-header" aria-label="Persistent agent names"></div><svg id="sequence" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence of recorded agent interactions"></svg><div id="sequence-overview" class="sequence-overview" role="group" aria-label="All recorded events in reading order, left to right and top to bottom"></div></div>
 <div class="overview-caption" id="overview-caption">Reading order: left → right, then next row ↓ · Select an event to inspect its explanation.</div>
 </div></div></main>
 <script>
@@ -389,6 +403,18 @@ const ns="http://www.w3.org/2000/svg",left=105,right=1120;
 const x=i=>left+i*(right-left)/Math.max(actors.length-1,1);
 const H=166+ev.length*94;
 const chosen=new Map(actors.map((v,i)=>[v,i]));
+const stickyHeader=document.getElementById("sticky-agent-header");
+function renderStickyAgentHeader(){
+ stickyHeader.replaceChildren();
+ actors.forEach((agent,j)=>{
+   const label=document.createElement("div");
+   label.className="sticky-agent-label";
+   label.style.left=(x(j)/1220*100)+"%";
+   label.textContent=actorLabel(agent);
+   stickyHeader.appendChild(label);
+ });
+}
+renderStickyAgentHeader();
 let index=0,timer=null,fitAll=false;
 const shell=document.querySelector(".shell"),fullButton=document.getElementById("fullscreen");
 const fitButton=document.getElementById("fit");
@@ -505,8 +531,7 @@ function draw(){
  append(activeMarker,"path",{d:"M0,0 L10,5 L0,10 Z",fill:"#94fff0"});
  actors.forEach((agent,j)=>{
    const cx=x(j);
-   append(svg,"rect",{x:cx-113,y:20,width:226,height:68,rx:12,fill:"#24526c",stroke:"#6db3cb","stroke-width":1.5});
-   append(svg,"text",{x:cx,y:61,"font-size":21,"font-weight":750,"text-anchor":"middle",fill:"#fff"},actorLabel(agent));
+   // Agent names are rendered in the separate sticky HTML header above.
    append(svg,"line",{x1:cx,y1:89,x2:cx,y2:H-28,stroke:"#567d96","stroke-dasharray":"7 7","stroke-width":1.5});
  });
  ev.forEach((item,j)=>{
