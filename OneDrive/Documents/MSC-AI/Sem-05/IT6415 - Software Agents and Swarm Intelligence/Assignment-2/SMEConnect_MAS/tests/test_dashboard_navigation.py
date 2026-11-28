@@ -479,9 +479,49 @@ def test_sequence_fullscreen_overview_uses_readable_event_cards_instead_of_tiny_
         'viewport.classList.toggle("overview-active",fitAll)',
         'if(fitAll){',
         'fitButton.textContent=fitAll?"◉ Detailed Sequence":"⊞ Fit Entire Sequence"',
-        '.shell:fullscreen:has(.diagram.overview-active) .detail{display:none}',
+        '.shell:fullscreen:has(.diagram.overview-active) .detail{display:flex}',
     ):
         assert marker in source
     # The original event-by-event SVG is deliberately retained as a separate view.
     assert 'function draw(){' in source
     assert 'svg.replaceChildren();' in source
+
+
+def test_sequence_presentation_cockpit_moves_explanations_left():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    for marker in (
+        'class="presentation-layout"',
+        'class="presentation-side"',
+        'class="presentation-stage"',
+        '.presentation-layout{display:grid;grid-template-columns:',
+        '.shell:fullscreen .presentation-layout',
+        '.shell:fullscreen .presentation-side',
+        '.shell:fullscreen .presentation-stage .diagram',
+        '.shell:fullscreen:has(.diagram.overview-active) .detail{display:flex}',
+        'class="row g-3 detail"',
+    ):
+        assert marker in source
+    side = source.index('<aside class="presentation-side"')
+    stage = source.index('<div class="presentation-stage">')
+    assert side < stage
+    assert 'height:100dvh;overflow:hidden' in source
+
+
+def test_sequence_run_attempts_fullscreen_with_browser_safe_fallback():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    for marker in (
+        'id="present"',
+        'function tryAutomaticFullscreen(){',
+        'requestAnimationFrame(tryAutomaticFullscreen)',
+        'presentButton.onclick=launchPresentation;',
+        'function launchPresentation(){',
+        'if(!isFullscreen())toggleFullscreen();',
+        'Browser requires a direct click:',
+    ):
+        assert marker in source
+    assert 'run_result = _run_session(' in source
+    # Fullscreen/replay controls must not re-execute backend agent actions.
+    embedded_html = source.split("page = r'''", 1)[1].split("'''", 1)[0]
+    assert '_run_session(' not in embedded_html
