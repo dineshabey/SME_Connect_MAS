@@ -835,20 +835,31 @@ def test_sequence_viva_summary_includes_all_seven_registered_agents():
     assert "Market Agent M1 acts in Market Adaptation" in html
 
 
-def test_sequence_viva_conclusion_maps_real_mas_features_to_agents():
-    from dashboard.sequence_replay import _MAS_FEATURE_SUMMARIES, _mas_features_html
+def test_sequence_viva_conclusion_maps_professors_three_essential_mas_features():
+    from dashboard.sequence_replay import (
+        _MAS_FEATURE_SUMMARIES, _AGENT_CHARACTERISTICS,
+        _mas_features_html,
+    )
 
-    features = {name for name, *_ in _MAS_FEATURE_SUMMARIES}
-    assert features == {
-        "Autonomy", "Agent Communication", "Negotiation", "Competition",
-        "Cooperation", "Coordination", "Reactivity",
-        "Goal-oriented decisions",
+    features = [name for name, *_ in _MAS_FEATURE_SUMMARIES]
+    assert features == [
+        "1 · Communication", "2 · Coordination", "3 · Negotiation",
+    ]
+    assert {name for name, *_ in _AGENT_CHARACTERISTICS} == {
+        "Situatedness", "Works for a master / owner", "Autonomy",
+        "Adaptivity — Reactive", "Sociability / Interaction",
     }
     html = _mas_features_html()
-    assert "MULTI-AGENT FEATURES" in html
-    assert "Which agent demonstrates which MAS concept?" in html
-    assert "LangGraph" in html
-    assert "sequential synthetic academic simulation" in html
+    assert "PROFESSOR" in html
+    assert "Three essential MAS features" in html
+    assert "INDIVIDUAL AGENT CHARACTERISTICS" in html
+    assert "Self-Interested MAS (SMAS)" in html
+    assert "Topic 4 · Slide 119" in html
+    assert "KQML" in html
+    assert "not implemented or proven" in html
+    assert "not a decentralized production deployment" in html
+    assert "slide" in html.lower() and "133" in html
+
 
 
 def test_viva_summary_position_and_readability_in_sequence_page():
@@ -869,3 +880,16 @@ def test_viva_summary_position_and_readability_in_sequence_page():
         "@media(max-width:760px)",
     ):
         assert marker in source
+
+
+def test_viva_does_not_mislabel_agent_traits_as_essential_mas_features():
+    from dashboard.sequence_replay import (
+        _MAS_FEATURE_SUMMARIES, _AGENT_CHARACTERISTICS, _MAS_NOT_DEMONSTRATED,
+    )
+    assert len(_MAS_FEATURE_SUMMARIES) == 3
+    mas_features = " ".join(row[0] for row in _MAS_FEATURE_SUMMARIES)
+    for trait in ("Autonomy", "Learning", "Situatedness", "Mobility"):
+        assert trait not in mas_features
+    assert any("Reactive" in row[0] for row in _AGENT_CHARACTERISTICS)
+    assert "Learning from experience" in _MAS_NOT_DEMONSTRATED
+    assert "self-organization" in _MAS_NOT_DEMONSTRATED
