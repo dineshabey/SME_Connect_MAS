@@ -837,23 +837,46 @@ _AGENT_SUMMARIES = (
     ("M1", "📡", "Market agent", "Issues market-change signals in the separate Market Adaptation scenario."),
 )
 
+# Professor Asoka Karunananda, IT6415 (B18), Topic 4, slide 119:
+# exactly THREE essential features of Multi-Agent Systems.
 _MAS_FEATURE_SUMMARIES = (
-    ("Autonomy", "S1, S2, R1, R2, D1",
-     "Each applies its own pricing, demand, budget or capacity decision rules."),
-    ("Agent Communication", "R1 / R2, S1 / S2, C1, D1",
-     "Sender/receiver messages carry PROPOSE, ACCEPT, REJECT, CFP and INFORM actions."),
-    ("Negotiation", "Retailer + Seller agents",
-     "Buyer offers and seller counteroffers are independently evaluated until agreement or rejection."),
-    ("Competition", "S1 vs S2, Retailer R1 / R2",
-     "Sellers provide independent offers; the chosen retailer compares feasible agreements."),
-    ("Cooperation", "Retailer, Seller, D1, C1",
-     "After agreement, delivery and retailer approvals support one simulated order."),
-    ("Coordination", "Coordinator C1",
-     "Coordinates discovery, verified proposals and all-or-none resource reservation."),
-    ("Reactivity", "S1, S2, R1 / R2; M1",
-     "Agents recompute under changed scenario values; M1 reports controlled market shocks separately."),
-    ("Goal-oriented decisions", "S1, S2, R1, R2, D1",
-     "Policies reflect seller profit/volume, buyer cost/demand and delivery capacity goals."),
+    ("1 · Communication", "Retailer R1/R2 ↔ Seller S1/S2; C1 ↔ D1/R1",
+     "Validated, addressed PROPOSE / ACCEPT-PROPOSAL / CFP / INFORM "
+     "messages travel over the in-memory message bus. "
+     "This is logical peer-to-peer messaging, not KQML or a network ACL platform."),
+    ("2 · Coordination", "Coordinator C1; Delivery D1; Retailer R1/R2",
+     "C1 discovers suppliers, requests a delivery quote, requests retailer "
+     "approval, and checks stock, budget, demand and capacity together "
+     "before a simulated reservation. This avoids resource over-allocation."),
+    ("3 · Negotiation", "Retailer R1/R2 with Seller S1/S2",
+     "The retailer proposes a buying price; each seller independently "
+     "accepts, rejects or counters within its minimum/target pricing rules. "
+     "The retailer compares feasible agreements to resolve a price conflict."),
+)
+
+# Slide 35: characteristics of individual AGENTS, not extra essential MAS features.
+_AGENT_CHARACTERISTICS = (
+    ("Situatedness", "All registered agents",
+     "Operate within the synthetic marketplace environment: price, demand, "
+     "stock and delivery capacity form their decision context."),
+    ("Works for a master / owner", "S1/S2 and R1/R2",
+     "Seller policies represent the seller's business objective; retailer "
+     "policies represent the buyer's purchasing objective."),
+    ("Autonomy", "S1/S2, R1/R2, D1",
+     "The separate LangGraph decision policies choose actions without "
+     "manually entering each counteroffer or delivery decision."),
+    ("Adaptivity — Reactive", "S1/S2, R1/R2; M1 separately",
+     "A new run with changed input values yields recomputed decisions. "
+     "M1 issues controlled market-change signals in Market Adaptation experiments."),
+    ("Sociability / Interaction", "Retailer, Seller, Coordinator, Delivery",
+     "Agents communicate, coordinate and negotiate through validated messages."),
+)
+
+_MAS_NOT_DEMONSTRATED = (
+    "Learning from experience, mobile-agent migration, and autonomous "
+    "proactive behaviour are not implemented or proven by this demo. "
+    "Likewise, emergence and self-organization have not been experimentally "
+    "established. Lightweight CPU/memory use has not been benchmarked."
 )
 
 
@@ -878,24 +901,46 @@ def _agent_summary_html() -> str:
 
 
 def _mas_features_html() -> str:
-    cards = "".join(
+    essential = "".join(
         '<div class="seq-mas-feature">'
-        f'<div class="seq-mas-feature-title">✓ {escape(feature)}</div>'
+        f'<div class="seq-mas-feature-title">{escape(feature)}</div>'
         f'<div class="seq-mas-feature-agent">Agents: {escape(agents)}</div>'
         f'<div class="seq-mas-feature-explain">{escape(description)}</div>'
         '</div>'
         for feature, agents, description in _MAS_FEATURE_SUMMARIES
     )
+    characteristics = "".join(
+        '<div class="seq-mas-character">'
+        f'<strong>{escape(name)}</strong>'
+        f'<span>{escape(agents)}</span>'
+        f'<p>{escape(example)}</p>'
+        '</div>'
+        for name, agents, example in _AGENT_CHARACTERISTICS
+    )
     return (
-        '<section class="seq-mas-section" aria-label="Implemented MAS characteristics">'
-        '<div class="seq-mas-heading">🎓 MULTI-AGENT FEATURES — IMPLEMENTATION SUMMARY</div>'
-        '<div class="seq-mas-subheading">Which agent demonstrates which MAS concept?</div>'
-        f'<div class="seq-mas-features">{cards}</div>'
-        '<div class="seq-mas-disclaimer">Implementation evidence: separate LangGraph '
-        'decision policies, validated in-memory messages, negotiated supplier selection, '
-        'delivery quotations and session-only resource reservations. '
-        'This is a sequential synthetic academic simulation, not autonomous '
-        'distributed deployment or a real commercial marketplace.</div>'
+        '<section class="seq-mas-section" aria-label="Professor IT6415 MAS features">'
+        '<div class="seq-mas-heading">🎓 PROFESSOR\'S IT6415 MAS FEATURES</div>'
+        '<div class="seq-mas-subheading">Topic 4 · Slide 119 · Three essential MAS features</div>'
+        f'<div class="seq-mas-features">{essential}</div>'
+        '<div class="seq-mas-heading seq-mas-second-title">'
+        'INDIVIDUAL AGENT CHARACTERISTICS</div>'
+        '<div class="seq-mas-subheading">Topic 1 · Slide 35 · Agent properties '
+        '(distinct from the three essential MAS features)</div>'
+        f'<div class="seq-mas-characters">{characteristics}</div>'
+        '<div class="seq-mas-heading seq-mas-second-title">MAS TYPE & ARCHITECTURE</div>'
+        '<div class="seq-mas-note"><strong>Self-Interested MAS (SMAS):</strong> '
+        'Sellers compete with independent price/volume goals, while retailers '
+        'seek feasible purchasing outcomes (Topic 4 · Slide 96). '
+        '<strong>Implementation:</strong> sequential orchestration with '
+        'bilateral message-driven negotiations and coordinator-controlled '
+        'reservations; not a decentralized production deployment '
+        '(Topic 4 · Slide 133).</div>'
+        '<div class="seq-mas-disclaimer"><strong>Not demonstrated:</strong> '
+        f'{escape(_MAS_NOT_DEMONSTRATED)}</div>'
+        '<div class="seq-mas-disclaimer">Reference: Prof. Asoka Karunananda, '
+        'Software Agents and Swarm Intelligence (IT6415, B18, 2026), '
+        'slides 35, 96, 119–131 and 133. This remains a synthetic, '
+        'single-process academic simulation with no real payments or shipments.</div>'
         '</section>'
     )
 
@@ -915,7 +960,17 @@ _MAS_SUMMARY_CSS = """
 .seq-mas-agent-title{font-size:clamp(19px,1.5vw,25px);font-weight:850;color:#fff}
 .seq-mas-agent-type{font-size:17px;font-weight:800;color:#9cf4d9;margin:5px 0 9px}
 .seq-mas-agent-body{font-size:18px;line-height:1.45;color:#e0f1f5}
-.seq-mas-features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.seq-mas-features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.seq-mas-second-title{font-size:26px;margin-top:27px;margin-bottom:8px}
+.seq-mas-characters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.seq-mas-character{border:1px solid #4e8c9f;border-radius:13px;padding:16px 20px;
+background:linear-gradient(135deg,#1b3954,#20505b)}
+.seq-mas-character strong{display:block;font-size:22px;color:#f8fffb}
+.seq-mas-character span{display:block;font-size:17px;font-weight:750;color:#a6ffe0;margin:6px 0}
+.seq-mas-character p{font-size:18px;line-height:1.5;color:#e0f0f7;margin:0}
+.seq-mas-note{font-size:19px;line-height:1.6;color:#e4f5f6;background:#123b4b;
+padding:18px;border-radius:12px;border:1px solid #4c95a0}
+
 .seq-mas-feature{padding:19px 22px;border:1px solid #58a48f;border-radius:16px;
   background:linear-gradient(125deg,#164a46,#174352);min-width:0}
 .seq-mas-feature-title{font-size:clamp(22px,1.6vw,27px);font-weight:850;color:#fff}
@@ -923,7 +978,8 @@ _MAS_SUMMARY_CSS = """
 .seq-mas-feature-explain{font-size:19px;line-height:1.5;color:#e5f8f5}
 .seq-mas-disclaimer{font-size:17px;color:#c8e8e8;margin-top:15px;line-height:1.5}
 @media(max-width:1250px){.seq-mas-agents{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:760px){.seq-mas-features,.seq-mas-agents{grid-template-columns:1fr}
+@media(max-width:1200px){.seq-mas-features{grid-template-columns:1fr}}
+@media(max-width:760px){.seq-mas-features,.seq-mas-agents,.seq-mas-characters{grid-template-columns:1fr}
   .seq-mas-section{padding:16px}.seq-mas-agent-body,.seq-mas-feature-explain{font-size:17px}}
 </style>
 """
