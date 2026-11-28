@@ -177,6 +177,41 @@ background:linear-gradient(110deg,#174f4d,#173c52)}
 .detail .panel{height:100%;min-height:270px;overflow:visible;overflow-wrap:anywhere}
 #decision-panel #reason{overflow-wrap:anywhere;white-space:normal}
 .final p{font-size:21px;line-height:1.6}
+/* Full-screen presentation: all lifelines and events fit the visible screen. */
+.shell:fullscreen,.shell:-webkit-full-screen{
+ width:100vw;height:100vh;max-width:none;margin:0;border-radius:0;
+ padding:16px 24px;display:flex;flex-direction:column;background:#0b1b2e;
+ overflow:hidden
+}
+.shell:fullscreen .top,.shell:fullscreen .legend,.shell:fullscreen .controls,
+.shell:fullscreen .detail,.shell:fullscreen .final{flex-shrink:0}
+.shell:fullscreen .diagram,.shell:-webkit-full-screen .diagram{
+ flex:1 1 0;min-height:0;height:auto;overflow:hidden
+}
+.shell:fullscreen .detail{margin-top:10px}
+.shell:fullscreen .panel{min-height:110px;padding:12px 18px}
+.shell:fullscreen .panel h2{font-size:20px;margin:3px 0}
+.shell:fullscreen .panel p{font-size:17px;line-height:1.35;margin:3px 0}
+.shell:fullscreen #reason{font-size:18px!important;line-height:1.35}
+.shell:fullscreen #impact{font-size:16px!important;line-height:1.3}
+.shell:fullscreen .explain-extra{margin-top:6px;padding-top:6px}
+.shell:fullscreen .small{font-size:13px!important}
+.shell:fullscreen .final{margin-top:6px;padding:9px 15px}
+.shell:fullscreen .final h2{font-size:20px;margin:0 0 4px}
+.shell:fullscreen .stat{padding:5px;min-width:110px}
+.shell:fullscreen .stat b{font-size:20px}
+.shell:fullscreen .stat span{font-size:13px}
+.shell:fullscreen .final p{font-size:13px;margin:5px 0}
+.shell:fullscreen h1{font-size:26px}
+.shell:fullscreen .sub,.shell:fullscreen .legend{font-size:14px}
+.shell:fullscreen .legend{padding:4px 0}
+.shell:fullscreen .controls{margin:3px 0 7px}
+.shell:fullscreen button{min-height:38px;padding:6px 13px;font-size:16px}
+.shell:fullscreen .counter{font-size:18px}
+button[aria-pressed="true"]{background:#166b63;border-color:#8cebd9}
+#fullscreen-notice{font-size:15px;color:#ffdfb3;margin-left:6px;align-self:center}
+@media(max-height:720px){.shell:fullscreen .legend{display:none}.shell:fullscreen .detail .panel{min-height:80px}}
+
 
 @media(max-width:850px){.shell{padding:13px}h1{font-size:24px}
 .diagram{height:360px}button{font-size:18px;padding:10px 13px}.panel p{font-size:20px}.panel h2{font-size:24px}}
@@ -192,7 +227,10 @@ background:linear-gradient(110deg,#174f4d,#173c52)}
 <div class="controls">
 <button id="previous">← Previous</button><button class="primary" id="toggle">▶ Play</button>
 <button id="next">Next →</button><button id="restart">↺ Restart</button>
-<button id="end">Show final result</button></div>
+<button id="end">Show final result</button>
+<button id="fullscreen" aria-pressed="false" title="Use Escape to exit">⛶ Full Screen</button>
+<button id="fit" aria-pressed="false" title="Fit all recorded events without scrolling">⊞ Fit Entire Sequence</button>
+<span id="fullscreen-notice" role="status" aria-live="polite"></span></div>
 <div class="diagram" id="viewport"><svg id="sequence" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence of recorded agent interactions"></svg></div>
 <div class="row g-3 detail">
 <div class="col-12 col-xl-5"><section class="panel"><div class="kicker">CURRENT EVENT</div><h2 id="title"></h2>
@@ -224,14 +262,51 @@ function resizeFrame(){
 if(window.ResizeObserver){
   new ResizeObserver(resizeFrame).observe(document.querySelector(".shell"));
 }
-window.addEventListener("resize",resizeFrame);
+window.addEventListener("resize",()=>{resizeFrame();requestAnimationFrame(draw)});
 window.addEventListener("load",resizeFrame);
 const svg=document.getElementById("sequence"),viewport=document.getElementById("viewport");
 const ns="http://www.w3.org/2000/svg",left=105,right=1120;
 const x=i=>left+i*(right-left)/Math.max(actors.length-1,1);
 const H=166+ev.length*94;
 const chosen=new Map(actors.map((v,i)=>[v,i]));
-let index=0,timer=null;
+let index=0,timer=null,fitAll=false;
+const shell=document.querySelector(".shell"),fullButton=document.getElementById("fullscreen");
+const fitButton=document.getElementById("fit");
+function isFullscreen(){return document.fullscreenElement===shell||document.webkitFullscreenElement===shell}
+function refreshFullscreen(){
+ const full=isFullscreen();
+ fullButton.textContent=full?"⛶ Exit Full Screen":"⛶ Full Screen";
+ fullButton.setAttribute("aria-pressed",String(full));
+ if(full){fitAll=true;updateFitButton()}
+ requestAnimationFrame(draw);
+}
+async function toggleFullscreen(){
+ const notice=document.getElementById("fullscreen-notice");
+ notice.textContent="";
+ try{
+   if(isFullscreen()){
+     if(document.exitFullscreen)await document.exitFullscreen();
+     else if(document.webkitExitFullscreen)document.webkitExitFullscreen();
+   }else if(shell.requestFullscreen){
+     await shell.requestFullscreen();
+   }else if(shell.webkitRequestFullscreen){
+     shell.webkitRequestFullscreen();
+   }else{
+     throw new Error("Full-screen API unavailable");
+   }
+ }catch(error){
+   notice.textContent="Browser blocked full screen. Use Fit Entire Sequence, or open the standalone HTML.";
+ }
+}
+function updateFitButton(){
+ fitButton.setAttribute("aria-pressed",String(fitAll));
+ fitButton.textContent=fitAll?"◉ Follow Current Event":"⊞ Fit Entire Sequence";
+}
+fullButton.onclick=toggleFullscreen;
+fitButton.onclick=()=>{fitAll=!fitAll;updateFitButton();draw()};
+document.addEventListener("fullscreenchange",refreshFullscreen);
+document.addEventListener("webkitfullscreenchange",refreshFullscreen);
+
 const timings={Slow:1400,Normal:850,Fast:400};
 const reduced=window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 function element(tag,attrs={},text=""){
@@ -242,7 +317,10 @@ function append(parent,tag,attrs,text){const el=element(tag,attrs,text);parent.a
 function isMsg(item){return item.kind==="message" && chosen.has(item.sender)&&chosen.has(item.receiver)}
 function draw(){
  svg.replaceChildren();svg.setAttribute("viewBox",`0 0 1220 ${H}`);
- svg.setAttribute("height",String(H));
+ svg.setAttribute("preserveAspectRatio","xMidYMin meet");
+ svg.setAttribute("height",String(fitAll?Math.max(180,viewport.clientHeight):H));
+ svg.style.minWidth=fitAll?"0":"720px";
+ svg.style.width="100%";
  const defs=append(svg,"defs");
  const marker=append(defs,"marker",{id:"arrow",markerWidth:10,markerHeight:9,refX:9,refY:4,orient:"auto",markerUnits:"strokeWidth"});
  append(marker,"path",{d:"M0,0 L9,4 L0,8 Z",fill:"#60c8d0"});
@@ -280,7 +358,9 @@ function draw(){
   }
  });
  const focusY=135+index*94;
- if(reduced){viewport.scrollTop=Math.max(0,focusY-240)}
+ if(fitAll){
+   viewport.scrollTop=0;viewport.scrollLeft=0;
+ }else if(reduced){viewport.scrollTop=Math.max(0,focusY-240)}
  else viewport.scrollTo({top:Math.max(0,focusY-240),behavior:"smooth"});
 }
 function show(){
@@ -355,6 +435,7 @@ document.getElementById("restart").onclick=()=>{stop();step(0)};
 document.getElementById("end").onclick=()=>{stop();step(ev.length-1)};
 document.getElementById("toggle").onclick=()=>timer===null?start():stop();
 show();
+updateFitButton();
 requestAnimationFrame(resizeFrame);
 if(!reduced)start();
 </script></body></html>'''
