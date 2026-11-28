@@ -994,3 +994,28 @@ def test_final_result_distinguishes_product_cost_delivery_quote_and_total():
     assert "Not quoted" in failed_card
     assert "Not reserved" in failed_card
     assert "SIMULATED ORDER RESERVED" not in failed_card
+
+
+def test_agent_network_displays_individual_goals_for_all_seven_agents():
+    from dashboard.sequence_replay import _agent_summary_html
+
+    html = _agent_summary_html()
+    for goal in (
+        "Minimize purchasing cost",
+        "Meet demand with available stock",
+        "Maximize profit margin",
+        "Maximize sales volume",
+        "Coordinate and validate the order",
+        "Check delivery feasibility and quote the fee",
+        "Identify opportunities from market changes",
+    ):
+        assert f'Goal:</strong> {goal}' in html
+    assert html.count('class="seq-flow-goal"') == 7
+
+
+def test_agent_network_goal_labels_are_readable_and_responsive():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert ".seq-flow-goal{font-size:18px;" in source
+    assert ".seq-flow-goal strong{color:" in source
+    assert ".seq-flow-facts,.seq-flow-goal{font-size:16px}" in source
