@@ -825,6 +825,110 @@ def _final_decision_html(run: dict) -> str:
     """
 
 
+# Lecturer-facing summaries intentionally describe implemented roles, not
+# fictional conversations or claimed production capabilities.
+_AGENT_SUMMARIES = (
+    ("S1", "🏪", "Margin-focused seller", "Checks private minimum / target price and stock before negotiating."),
+    ("S2", "📦", "Volume-focused seller", "Evaluates bulk orders under its independent volume-selling rules."),
+    ("R1", "🛒", "Cost-focused retailer", "Negotiates purchase cost and selects a feasible supplier."),
+    ("R2", "🛍️", "Availability-focused retailer", "Prioritizes meeting demand within its budget and price limits."),
+    ("D1", "🚚", "Delivery agent", "Checks remaining capacity and quotes the simulated delivery fee."),
+    ("C1", "🧭", "Coordinator agent", "Discovers eligible sellers, requests delivery, coordinates reservations."),
+    ("M1", "📡", "Market agent", "Issues market-change signals in the separate Market Adaptation scenario."),
+)
+
+_MAS_FEATURE_SUMMARIES = (
+    ("Autonomy", "S1, S2, R1, R2, D1",
+     "Each applies its own pricing, demand, budget or capacity decision rules."),
+    ("Agent Communication", "R1 / R2, S1 / S2, C1, D1",
+     "Sender/receiver messages carry PROPOSE, ACCEPT, REJECT, CFP and INFORM actions."),
+    ("Negotiation", "Retailer + Seller agents",
+     "Buyer offers and seller counteroffers are independently evaluated until agreement or rejection."),
+    ("Competition", "S1 vs S2, Retailer R1 / R2",
+     "Sellers provide independent offers; the chosen retailer compares feasible agreements."),
+    ("Cooperation", "Retailer, Seller, D1, C1",
+     "After agreement, delivery and retailer approvals support one simulated order."),
+    ("Coordination", "Coordinator C1",
+     "Coordinates discovery, verified proposals and all-or-none resource reservation."),
+    ("Reactivity", "S1, S2, R1 / R2; M1",
+     "Agents recompute under changed scenario values; M1 reports controlled market shocks separately."),
+    ("Goal-oriented decisions", "S1, S2, R1, R2, D1",
+     "Policies reflect seller profit/volume, buyer cost/demand and delivery capacity goals."),
+)
+
+
+def _agent_summary_html() -> str:
+    cards = "".join(
+        '<div class="seq-mas-agent">'
+        f'<div class="seq-mas-agent-title">{escape(symbol)} {escape(_agent_label(aid))}</div>'
+        f'<div class="seq-mas-agent-type">{escape(role)}</div>'
+        f'<div class="seq-mas-agent-body">{escape(description)}</div>'
+        '</div>'
+        for aid, symbol, role, description in _AGENT_SUMMARIES
+    )
+    return (
+        '<section class="seq-mas-section" aria-label="Registered multi-agent roles">'
+        '<div class="seq-mas-heading">🤖 OUR 7 MULTI-AGENT SYSTEM ROLES</div>'
+        '<div class="seq-mas-subheading">Independent registered agents and their responsibilities</div>'
+        f'<div class="seq-mas-agents">{cards}</div>'
+        '<div class="seq-mas-disclaimer">Not all seven agents participate in every replay. '
+        'Market Agent M1 acts in Market Adaptation experiments, not the normal order sequence.</div>'
+        '</section>'
+    )
+
+
+def _mas_features_html() -> str:
+    cards = "".join(
+        '<div class="seq-mas-feature">'
+        f'<div class="seq-mas-feature-title">✓ {escape(feature)}</div>'
+        f'<div class="seq-mas-feature-agent">Agents: {escape(agents)}</div>'
+        f'<div class="seq-mas-feature-explain">{escape(description)}</div>'
+        '</div>'
+        for feature, agents, description in _MAS_FEATURE_SUMMARIES
+    )
+    return (
+        '<section class="seq-mas-section" aria-label="Implemented MAS characteristics">'
+        '<div class="seq-mas-heading">🎓 MULTI-AGENT FEATURES — IMPLEMENTATION SUMMARY</div>'
+        '<div class="seq-mas-subheading">Which agent demonstrates which MAS concept?</div>'
+        f'<div class="seq-mas-features">{cards}</div>'
+        '<div class="seq-mas-disclaimer">Implementation evidence: separate LangGraph '
+        'decision policies, validated in-memory messages, negotiated supplier selection, '
+        'delivery quotations and session-only resource reservations. '
+        'This is a sequential synthetic academic simulation, not autonomous '
+        'distributed deployment or a real commercial marketplace.</div>'
+        '</section>'
+    )
+
+
+_MAS_SUMMARY_CSS = """
+<style>
+.seq-mas-section{border:1px solid #458f9a;border-radius:20px;
+  padding:24px 26px;margin:16px 0 22px;
+  background:linear-gradient(120deg,#132b42,#174451);
+  box-shadow:0 12px 28px #05121d50}
+.seq-mas-heading{font-size:clamp(24px,2vw,31px);color:#fff;font-weight:850;
+  line-height:1.3;letter-spacing:.01em}
+.seq-mas-subheading{font-size:19px;color:#c3eae9;margin:6px 0 18px}
+.seq-mas-agents{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.seq-mas-agent{padding:17px 16px;border:1px solid #548b9d;border-radius:15px;
+  background:linear-gradient(145deg,#22475c,#194556);min-width:0}
+.seq-mas-agent-title{font-size:clamp(19px,1.5vw,25px);font-weight:850;color:#fff}
+.seq-mas-agent-type{font-size:17px;font-weight:800;color:#9cf4d9;margin:5px 0 9px}
+.seq-mas-agent-body{font-size:18px;line-height:1.45;color:#e0f1f5}
+.seq-mas-features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.seq-mas-feature{padding:19px 22px;border:1px solid #58a48f;border-radius:16px;
+  background:linear-gradient(125deg,#164a46,#174352);min-width:0}
+.seq-mas-feature-title{font-size:clamp(22px,1.6vw,27px);font-weight:850;color:#fff}
+.seq-mas-feature-agent{font-size:18px;color:#a5ffde;font-weight:800;margin:7px 0}
+.seq-mas-feature-explain{font-size:19px;line-height:1.5;color:#e5f8f5}
+.seq-mas-disclaimer{font-size:17px;color:#c8e8e8;margin-top:15px;line-height:1.5}
+@media(max-width:1250px){.seq-mas-agents{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.seq-mas-features,.seq-mas-agents{grid-template-columns:1fr}
+  .seq-mas-section{padding:16px}.seq-mas-agent-body,.seq-mas-feature-explain{font-size:17px}}
+</style>
+"""
+
+
 def _sequence_preview_changed() -> None:
     """Mark current controls as a draft; never execute agent logic in callbacks."""
     st.session_state["seq_preview_revision"] = (
@@ -910,6 +1014,8 @@ def _edit_seller_popup(seller_id: str):
 
 
 def render_sequence_replay():
+    st.markdown(_MAS_SUMMARY_CSS, unsafe_allow_html=True)
+    st.markdown(_agent_summary_html(), unsafe_allow_html=True)
     presenting = bool(st.session_state.get("seq_presenting", False))
     if presenting and "sequence_run" not in st.session_state:
         presenting = False
@@ -1307,3 +1413,6 @@ def render_sequence_replay():
         "The sequence reveals genuine recorded interactions. Summary/decision cards are "
         "not messages. Agents run sequentially; no real payments or shipments occur."
     )
+    # Viva conclusion: mapping between MAS concepts, real agent responsibilities,
+    # and existing evidence. This panel does not execute or invent any events.
+    st.markdown(_mas_features_html(), unsafe_allow_html=True)
