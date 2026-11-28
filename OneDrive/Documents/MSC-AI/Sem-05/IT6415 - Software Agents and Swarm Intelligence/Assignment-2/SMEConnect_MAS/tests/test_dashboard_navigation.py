@@ -579,7 +579,10 @@ def test_sequence_agent_names_remain_fixed_outside_scrollable_diagram():
     viewport_pos = html.index('id="viewport"')
     assert header_pos < viewport_pos
     assert 'id="sticky-agent-header"' not in html
-    assert 'position:sticky' not in html
+    # Sticky positioning is allowed on the fixed header wrapper. The invariant
+    # is structural: agent header precedes the independently scrollable viewport.
+    assert '.agent-header-viewport{position:sticky;top:0;z-index:30}' in html
+    assert '<div class="diagram" id="viewport">' in html
 
 
 def test_sequence_desktop_only_message_pane_scrolls_and_header_remains_visible():
