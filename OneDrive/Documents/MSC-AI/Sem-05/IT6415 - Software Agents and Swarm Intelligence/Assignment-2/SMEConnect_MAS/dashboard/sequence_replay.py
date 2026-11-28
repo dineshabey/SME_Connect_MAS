@@ -986,7 +986,7 @@ def render_sequence_replay():
                 '</span>'
                 f'<p><strong>Current request:</strong> {int(quantity):,} packets</p>'
                 f'<p><strong>Opening offer received:</strong> Rs.{offer:,.2f}</p>'
-                f'<p><strong>Public asking price:</strong> Rs.{listing.listed_price:,.2f}</p>'
+                f'<p><strong>Listed Price (Public):</strong> Rs.{listing.listed_price:,.2f}</p>'
                 f'<p><strong>Scenario stock:</strong> {agent.available_stock:,} packets</p>'
                 f'<p><strong>Units after potential allocation:</strong> '
                 f'{max(0, agent.available_stock - int(quantity)):,}</p>'
