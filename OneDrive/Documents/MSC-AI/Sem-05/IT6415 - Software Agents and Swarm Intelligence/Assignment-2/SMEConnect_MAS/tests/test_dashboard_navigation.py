@@ -414,3 +414,31 @@ def test_sequence_preview_reacts_without_executing_agent_graph():
     assert 'if run:' in source
     assert 'run_result = _run_session(' in source
     assert "st.form(" not in source
+
+
+def test_sequence_replay_uses_readable_agent_role_labels_without_changing_ids():
+    from dashboard.sequence_replay import _agent_label, _sequence_html
+
+    assert _agent_label("R1") == "Retailer Agent R1"
+    assert _agent_label("R2") == "Retailer Agent R2"
+    assert _agent_label("S1") == "Seller Agent S1"
+    assert _agent_label("S2") == "Seller Agent S2"
+    assert _agent_label("C1") == "Coordinator Agent C1"
+    assert _agent_label("D1") == "Delivery Agent D1"
+    assert _agent_label("M1") == "Market Agent M1"
+    assert _agent_label("UNKNOWN") == "UNKNOWN"
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert "format_func=_agent_label" in source
+    assert "actorLabel(agent)" in source
+    assert "actorLabel(item.sender)" in source
+    event = {"phase": "Negotiation", "kind": "message", "sender": "R1",
+             "receiver": "S1", "action": "PROPOSE", "label": "PROPOSE",
+             "description": "Recorded offer."}
+    html = _sequence_html([event], ["R1", "S1"], {
+        "status": "NO_AGREEMENT", "seller": "None", "price": "-",
+        "delivery": "-", "total": "-", "reason": "No agreement."
+    })
+    assert '"R1": "Retailer Agent R1"' in html
+    assert '"S1": "Seller Agent S1"' in html
+    assert '"sender": "R1"' in html
