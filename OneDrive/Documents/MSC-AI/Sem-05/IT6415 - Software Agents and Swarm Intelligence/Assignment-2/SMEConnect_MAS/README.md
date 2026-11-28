@@ -320,3 +320,13 @@ The detailed **Sequence Replay** uses a dedicated agent-name strip **outside** t
 To verify: restart the Streamlit app, hard-refresh the browser, Run a sequence, choose **Detailed Sequence** (rather than Fit Entire Sequence), position the pointer inside the diagram, and scroll the message area. The agent-name strip should remain visible at the top of the diagram while the messages move. In Full Screen, the viewer continues to use viewport-constrained layout.
 
 Automated regression assertions cover header placement and CSS structure. An independent headless Chromium layout check verified that scrolling the inner message pane did not move the agent header; complete app-browser integration still requires local visual verification.
+
+#### Viva seller editing popup (private scenario policies)
+
+Inside **🔀 Sequence Replay**, after selecting S1 and/or S2, use **⚙ Edit Seller Agent S1/S2** directly below the live seller preview cards. The native Streamlit modal provides editable **minimum acceptable unit price**, **target unit price** and **available stock**, with validated constraints and a **Reset seller to defaults** action. Click **Apply seller changes**, then **Run and animate agent sequence** to recompute real seller LangGraph decisions, the retailer's supplier selection, and the simulated resource ledger using the same isolated market snapshot.
+
+Agent private prices appear only in the **viva configuration preview**, explicitly labelled as private demo policies; they are not added to the public catalogue or sent as messages to competing agents. Public listing prices remain unchanged. All overrides live in the Streamlit session, and defaults in `build_agents()` are never modified or persisted. To compare original and changed outcomes, reset the seller in the modal and run again. Popup editing alone performs no negotiation or resource reservation.
+
+Demonstration: baseline R1 + S1/S2, 200 packets, Rs.150 offer selects S2 at the normal synthetic assumptions. Change S2 minimum price to Rs.175, target Rs.185, and stock to 90 using its popup. The next run should reject S2's 200-packet request and select S1 if its negotiated agreement remains feasible. The associated simulated ledger must start from S2 stock 90, rather than original 300.
+
+The implementation extends the existing immutable `MarketSnapshot` into `run_supplier_competition()` and `ReservationLedger.from_marketplace()` through `_run_session()`. No new database, dependency, real payment, stock mutation, or external seller change is introduced.
