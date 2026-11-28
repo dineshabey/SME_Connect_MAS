@@ -832,7 +832,7 @@ def test_sequence_viva_summary_includes_all_seven_registered_agents():
     for agent_id in known_ids:
         assert agent_id in html
     assert "Agent Network" in html
-    assert "Market Agent M1 acts in Market Adaptation" in html
+    assert "Market Agent M1 acts " in html and "Market Adaptation experiments" in html
 
 
 def test_sequence_viva_conclusion_maps_professors_three_essential_mas_features():
@@ -873,9 +873,9 @@ def test_viva_summary_position_and_readability_in_sequence_page():
         'with st.expander("Technical evidence'
     )
     for marker in (
-        ".seq-mas-agents{display:grid;",
+        ".seq-flow-pair{display:grid;",
         ".seq-mas-features{display:grid;",
-        ".seq-mas-agent-title{font-size:",
+        ".seq-flow-node-name{font-size:",
         ".seq-mas-feature-title{font-size:",
         "@media(max-width:760px)",
     ):
@@ -907,3 +907,47 @@ def test_sequence_dashboard_headings_are_clean_and_professional():
     assert "Slide 119" not in feature_html
     assert "OUR 7" not in agent_html
     assert "Slide 35" not in feature_html
+
+
+def test_agent_network_diagram_explains_real_request_to_reservation_flow():
+    from dashboard.sequence_replay import _agent_summary_html
+    html = _agent_summary_html()
+    for marker in (
+        "Agent Network",
+        "Retailer Request",
+        "Independent Seller Negotiation",
+        "Retailer-Side Supplier Selection",
+        "Coordination",
+        "Delivery Feasibility",
+        "Final Outcome",
+        "Compare Feasible Offers",
+        "Simulated Reservation Decision",
+        "Agent R1", "Agent R2", "Agent S1", "Agent S2",
+        "Agent C1", "Agent D1",
+        "Why LangGraph?",
+        "Pydantic messages and the in-memory message bus",
+        "S1 and S2 are the currently implemented sellers",
+    ):
+        assert marker in html
+    assert html.index("Retailer Request") < html.index(
+        "Independent Seller Negotiation"
+    ) < html.index("Retailer-Side Supplier Selection") < html.index(
+        "Coordination"
+    ) < html.index("Delivery Feasibility") < html.index("Final Outcome")
+    assert "Market Agent M1 acts " in html
+    assert "Market Adaptation experiments" in html
+    assert "not in the order sequence" in html
+
+
+def test_agent_network_diagram_has_projector_readable_responsive_nodes():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    for marker in (
+        ".seq-flow-layout{display:flex;",
+        ".seq-flow-pair{display:grid;",
+        ".seq-flow-node-name{font-size:clamp(20px",
+        ".seq-flow-langgraph strong{display:block;font-size:22px",
+        ".seq-flow-connector i{font-size:39px",
+        "@media(max-width:800px)",
+    ):
+        assert marker in source
