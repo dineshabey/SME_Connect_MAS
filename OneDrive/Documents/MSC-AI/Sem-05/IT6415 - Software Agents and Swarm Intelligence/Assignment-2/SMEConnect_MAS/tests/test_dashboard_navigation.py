@@ -929,11 +929,14 @@ def test_agent_network_diagram_explains_real_request_to_reservation_flow():
         "S1 and S2 are the currently implemented sellers",
     ):
         assert marker in html
-    assert html.index("Retailer Request") < html.index(
-        "Independent Seller Negotiation"
-    ) < html.index("Retailer-Side Supplier Selection") < html.index(
-        "Coordination"
-    ) < html.index("Delivery Feasibility") < html.index("Final Outcome")
+    stages = [
+        "1 · Retailer Request", "2 · Independent Seller Negotiation",
+        "3 · Retailer-Side Supplier Selection", "4 · Coordination",
+        "5 · Delivery Feasibility", "6 · Final Outcome",
+    ]
+    assert [html.index(stage) for stage in stages] == sorted(
+        html.index(stage) for stage in stages
+    )
     assert "Market Agent M1 acts " in html
     assert "Market Adaptation experiments" in html
     assert "not in the order sequence" in html
