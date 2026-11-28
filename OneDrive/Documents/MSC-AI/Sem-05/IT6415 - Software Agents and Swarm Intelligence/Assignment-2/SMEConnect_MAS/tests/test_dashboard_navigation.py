@@ -831,7 +831,7 @@ def test_sequence_viva_summary_includes_all_seven_registered_agents():
     html = _agent_summary_html()
     for agent_id in known_ids:
         assert agent_id in html
-    assert "OUR 7 MULTI-AGENT SYSTEM ROLES" in html
+    assert "Agent Network" in html
     assert "Market Agent M1 acts in Market Adaptation" in html
 
 
@@ -850,15 +850,15 @@ def test_sequence_viva_conclusion_maps_professors_three_essential_mas_features()
         "Adaptivity — Reactive", "Sociability / Interaction",
     }
     html = _mas_features_html()
-    assert "PROFESSOR" in html
-    assert "Three essential MAS features" in html
-    assert "INDIVIDUAL AGENT CHARACTERISTICS" in html
+    assert "Multi-Agent Capabilities" in html
+    assert "Core capabilities demonstrated by the simulation" in html
+    assert "Agent Characteristics" in html
     assert "Self-Interested MAS (SMAS)" in html
-    assert "Topic 4 · Slide 119" in html
+    assert "Topic 4 · Slide 119" not in html
     assert "KQML" in html
     assert "not implemented or proven" in html
     assert "not a decentralized production deployment" in html
-    assert "slide" in html.lower() and "133" in html
+    assert "System Architecture" in html
 
 
 
@@ -893,3 +893,17 @@ def test_viva_does_not_mislabel_agent_traits_as_essential_mas_features():
     assert any("Reactive" in row[0] for row in _AGENT_CHARACTERISTICS)
     assert "Learning from experience" in _MAS_NOT_DEMONSTRATED
     assert "self-organization" in _MAS_NOT_DEMONSTRATED
+
+
+def test_sequence_dashboard_headings_are_clean_and_professional():
+    from dashboard.sequence_replay import _agent_summary_html, _mas_features_html
+    agent_html = _agent_summary_html()
+    feature_html = _mas_features_html()
+    assert "Agent Network" in agent_html
+    assert "Multi-Agent Capabilities" in feature_html
+    assert "Agent Characteristics" in feature_html
+    assert "System Architecture" in feature_html
+    assert "Professor" not in feature_html
+    assert "Slide 119" not in feature_html
+    assert "OUR 7" not in agent_html
+    assert "Slide 35" not in feature_html
