@@ -179,8 +179,8 @@ padding:0 10px 5px}
 @media(min-width:1200px){.overview-event .route{font-size:18px}.overview-event .msg{font-size:17px}
 .overview-event .stepno{font-size:14px}.sequence-overview{gap:10px;padding:14px}}
 @media(max-width:800px){.sequence-overview{gap:4px;padding:5px}
-.overview-event{padding:4px 5px}.overview-event .stepno{font-size:10px}
-.overview-event .route{font-size:12px}.overview-event .msg{font-size:11px}}
+.overview-event{padding:4px 5px}.overview-event .stepno{font-size:11px}
+.overview-event .route{font-size:15px}.overview-event .msg{font-size:14px}}
 
 svg{display:block;width:100%;min-width:720px}
 .detail{display:flex;flex-wrap:wrap;gap:0;margin-top:20px;align-items:stretch;margin-left:-9px;margin-right:-9px}
