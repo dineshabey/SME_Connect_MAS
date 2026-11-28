@@ -804,6 +804,12 @@ def _final_decision_html(run: dict) -> str:
     seller_text = _agent_label(seller_id) if seller_id else "No supplier selected"
     quantity_text = f"{reservation['quantity']:,} packets" if success else "Not reserved"
     total_text = f"Rs.{reservation['reserved_total']:,.2f}" if success else "Not reserved"
+    delivery_fee = coordination.get("delivery_fee")
+    fee_text = f"Rs.{delivery_fee:,.2f}" if delivery_fee is not None else "Not quoted"
+    product_text = (
+        f"Rs.{reservation['unit_price'] * reservation['quantity']:,.2f}"
+        if success else "Not reserved"
+    )
     agreed_price = selection.get("selected_price")
     price_text = f"Rs.{agreed_price:,.2f}" if agreed_price is not None else "No agreement"
     reason = coordination.get("reason", "")
@@ -817,7 +823,9 @@ def _final_decision_html(run: dict) -> str:
         <div><span>FINAL COORDINATION STATUS</span><strong>{escape(status)}</strong></div>
         <div><span>NEGOTIATED UNIT PRICE</span><strong>{escape(price_text)}</strong></div>
         <div><span>RESERVED QUANTITY</span><strong>{escape(quantity_text)}</strong></div>
-        <div><span>SIMULATED ORDER TOTAL</span><strong>{escape(total_text)}</strong></div>
+        <div><span>PRODUCT COST</span><strong>{escape(product_text)}</strong></div>
+        <div><span>DELIVERY FEE (D1)</span><strong>{escape(fee_text)}</strong></div>
+        <div><span>SIMULATED ORDER TOTAL (INCLUDING DELIVERY)</span><strong>{escape(total_text)}</strong></div>
       </div>
       <p class="seq-result-reason">{escape(str(reason))}</p>
       <p class="seq-result-disclaimer">Synthetic simulation only · No real order, payment or delivery.</p>
@@ -1024,6 +1032,21 @@ _MAS_SUMMARY_CSS = """
 .seq-mas-heading{font-size:clamp(24px,2vw,31px);color:#fff;font-weight:850;
   line-height:1.3;letter-spacing:.01em}
 .seq-mas-subheading{font-size:19px;color:#c3eae9;margin:6px 0 18px}
+.seq-delivery-card{margin:18px 0 22px;padding:24px 28px;border-radius:18px;
+ border:2px solid #d4a45c;background:linear-gradient(125deg,#483f32,#244357);
+ box-shadow:0 9px 24px #050f1765}
+.seq-delivery-title{font-size:clamp(25px,2vw,33px);font-weight:850;color:#fff}
+.seq-delivery-description{font-size:19px;color:#f4e8ce;line-height:1.5;margin:6px 0 16px}
+.seq-delivery-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.seq-delivery-metrics>div{border:1px solid #d5b679;border-radius:13px;
+ background:#1b3543;padding:17px;min-width:0}
+.seq-delivery-metrics span{display:block;font-size:18px;font-weight:750;color:#f6dcaf}
+.seq-delivery-metrics strong{display:block;font-size:clamp(23px,1.8vw,31px);
+ color:#fff;margin-top:8px;overflow-wrap:anywhere}
+.seq-delivery-status{font-size:20px;color:#e1ffe6;font-weight:850;margin-top:15px}
+.seq-delivery-note{font-size:17px;color:#d7e7f1;margin-top:7px}
+@media(max-width:800px){.seq-delivery-metrics{grid-template-columns:1fr}
+ .seq-delivery-card{padding:17px}}
 .seq-flow-section{max-width:100%}
 .seq-flow-layout{display:flex;flex-direction:column;align-items:center;
   gap:0;padding:22px;border-radius:18px;border:1px solid #4a829a;
@@ -1339,6 +1362,27 @@ def render_sequence_replay():
             )
         profiles.append("</div>")
         st.markdown("".join(profiles), unsafe_allow_html=True)
+        delivery = next(a for a in build_agents() if a.role == "delivery" and a.agent_id == "D1")
+        available = int(quantity) <= delivery.capacity
+        st.markdown(
+            '<section class="seq-delivery-card" aria-label="Delivery Agent D1 preview">'
+            '<div class="seq-delivery-title">🚚 Delivery Agent D1</div>'
+            '<div class="seq-delivery-description">Checks whether the requested '
+            'quantity can be delivered and quotes the delivery fee.</div>'
+            '<div class="seq-delivery-metrics">'
+            '<div><span>Available Capacity</span>'
+            f'<strong>{delivery.capacity:,} packets</strong></div>'
+            '<div><span>Delivery Fee per Trip</span>'
+            f'<strong>Rs.{delivery.cost_per_trip:,.2f}</strong></div>'
+            '<div><span>Requested Quantity</span>'
+            f'<strong>{int(quantity):,} packets</strong></div>'
+            '</div>'
+            f'<div class="seq-delivery-status">{"Capacity available for request" if available else "Requested quantity exceeds delivery capacity"}</div>'
+            '<div class="seq-delivery-note">This is the configured delivery '
+            'policy, not a confirmed quote. The Delivery Agent makes its '
+            'decision only after the simulation runs.</div></section>',
+            unsafe_allow_html=True,
+        )
         # Streamlit-native buttons open actual modal dialogs. The styled HTML
         # preview cards themselves contain no simulated/inert buttons.
         action_columns = st.columns(max(1, len(seller_ids) + 1))
