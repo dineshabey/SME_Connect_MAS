@@ -1100,15 +1100,18 @@ def render_sequence_replay():
         return
     saved = result["params"]
     if not st.session_state.get("seq_presenting", False) and (
-        saved["retailer_id"] != retailer_id or saved["seller_ids"] != seller_ids
+        st.session_state.get("seq_preview_revision", 0)
+            != st.session_state.get("seq_last_run_revision", 0)
+        or saved["retailer_id"] != retailer_id or saved["seller_ids"] != seller_ids
         or saved["quantity"] != int(quantity)
         or saved["initial_price"] != float(offer)
         or saved["target"] != float(target) or saved["rounds"] != rounds
         or saved["resale_price"] != float(resale)
     ):
         st.warning(
-            "Your live agent cards show the CURRENT draft configuration. "
-            "The sequence diagram below still shows the LAST completed run. "
+            "Scenario or Seller Agent policy changed — rerun required. "
+            "Your live agent cards show the CURRENT draft configuration, but "
+            "the sequence below still shows the LAST completed run. "
             "Click Run and animate agent sequence to update the recorded evidence."
         )
     st.markdown("### Animated message sequence")
