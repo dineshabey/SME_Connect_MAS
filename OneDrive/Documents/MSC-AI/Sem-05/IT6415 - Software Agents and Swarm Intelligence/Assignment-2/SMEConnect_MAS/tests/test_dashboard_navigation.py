@@ -413,7 +413,11 @@ def test_sequence_preview_reacts_without_executing_agent_graph():
     assert "Click Run and animate agent sequence" in source
     assert 'if run:' in source
     assert 'run_result = _run_session(' in source
-    assert "st.form(" not in source
+    # Only the seller-edit modal uses a form; main scenario inputs remain live.
+    main_controls = source.split("def render_sequence_replay():", 1)[1].split(
+        'run = st.button(', 1
+    )[0]
+    assert "st.form(" not in main_controls
 
 
 def test_sequence_replay_uses_readable_agent_role_labels_without_changing_ids():
