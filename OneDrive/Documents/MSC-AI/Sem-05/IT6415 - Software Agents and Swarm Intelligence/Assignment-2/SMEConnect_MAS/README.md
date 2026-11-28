@@ -353,3 +353,11 @@ The **🔀 Sequence Replay** ending now follows the professor's own terminology 
 - **Slide 133:** Implementation is sequential single-process **orchestration** with bilateral message-driven negotiations and a coordinator, not a truly decentralized peer-to-peer deployment.
 
 Reference: *Software Agents and Swarm Intelligence-B18-2026.ppt (1).pdf*, Prof. Asoka Karunananda, slides 35, 96, 119–131, 133. The UI retains the seven registered agent roles above the workflow and places the corrected essential-features + individual-traits + architecture summary at the end.
+
+#### Agent Network: workflow data-flow diagram and LangGraph rationale
+
+The top of **🔀 Sequence Replay** now displays a responsive **Agent Network** request-to-reservation workflow instead of seven disconnected role tiles. The logical order is **Retailer R1/R2 (one selected per run) → independent Seller S1/S2 negotiations → retailer-side feasible supplier selection → Coordinator C1 → delivery feasibility with D1 → simulated reservation outcome**. Each agent node explains its responsibility and key inputs; stage connectors identify messages and decision data.
+
+**Important implementation distinction:** Coordinator C1 discovers available sellers and coordinates post-selection delivery/reservation. The **retailer** evaluates seller offers and selects a supplier; C1 does not centrally dictate negotiation results. The seller/retailer interactions are represented by typed in-memory messages. Market Agent M1 is shown in a separate labelled note because it participates in independent Market Adaptation experiments rather than the normal order replay; S1 and S2 are the only seller instances currently implemented, not arbitrary S3–Sn.
+
+A concise **Why LangGraph?** label explains that separate stateful seller/retailer/delivery workflows enable explicit policy evaluation, conditional branching and inspectable recorded decisions. LangGraph is *not* the communications transport: validated messages are handled by Pydantic and the in-memory message bus. This is a synthetic single-process application, not a distributed agent deployment.
