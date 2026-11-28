@@ -669,3 +669,89 @@ def test_seller_popup_rejects_invalid_internal_policy_values():
         _seller_market_snapshot({"S1": {
             "minimum_price": 150, "target_price": 170, "available_stock": -1
         }})
+
+
+def test_edited_seller_prices_propagate_through_real_negotiation_and_selection():
+    from dashboard.sequence_replay import _seller_market_snapshot, _seller_run_evidence
+    from dashboard.workflow_simulator import _run_session
+
+    normal = _run_session("R1", ["S1", "S2"], 200, 150, 150, 5, 200)
+    assert normal["competition"]["selection"]["selected_seller_id"] == "S2"
+    altered = _seller_market_snapshot({
+        "S1": {"minimum_price": 160, "target_price": 180, "available_stock": 500},
+        "S2": {"minimum_price": 175, "target_price": 185, "available_stock": 300},
+    })
+    result = _run_session(
+        "R1", ["S1", "S2"], 200, 150, 150, 5, 200,
+        market_state=altered,
+    )
+    evidence = {r["seller_id"]: r for r in _seller_run_evidence(result)}
+    assert evidence["S1"]["minimum_price"] == 160
+    assert evidence["S1"]["target_price"] == 180
+    assert evidence["S2"]["minimum_price"] == 175
+    assert evidence["S2"]["target_price"] == 185
+    assert result["competition"]["negotiations"]["S1"]["status"] == "REJECTED"
+    assert result["competition"]["negotiations"]["S2"]["status"] == "REJECTED"
+    assert result["competition"]["selection"]["selected_seller_id"] is None
+    assert result["coordination"]["status"] == "NO_AGREEMENT"
+    assert evidence["S1"]["reserved_packets"] == 0
+    assert evidence["S2"]["reserved_packets"] == 0
+    assert result["after"]["seller_stock"] == result["before"]["seller_stock"]
+
+
+def test_seller_price_changes_affect_actual_successful_booking_and_comparison():
+    from dashboard.sequence_replay import (
+        _seller_market_snapshot, _seller_run_evidence, _compare_seller_runs,
+    )
+    from dashboard.workflow_simulator import _run_session
+
+    before = _run_session("R1", ["S1", "S2"], 200, 150, 150, 5, 200)
+    snapshot = _seller_market_snapshot({
+        "S2": {"minimum_price": 175, "target_price": 185, "available_stock": 300}
+    })
+    after = _run_session(
+        "R1", ["S1", "S2"], 200, 150, 150, 5, 200,
+        market_state=snapshot,
+    )
+    assert after["competition"]["selection"]["selected_seller_id"] == "S1"
+    assert after["coordination"]["status"] == "RESERVED_SIMULATED"
+    reservation = after["coordination"]["reservation"]
+    assert reservation["seller_id"] == "S1"
+    assert reservation["unit_price"] == 155
+    policy = {row["seller_id"]: row for row in _seller_run_evidence(after)}
+    assert policy["S2"]["negotiation_status"] == "REJECTED"
+    assert policy["S2"]["remaining_stock"] == 300
+    assert policy["S1"]["remaining_stock"] == 300
+    compare = {row["seller_id"]: row for row in _compare_seller_runs(before, after)}
+    assert compare["S2"]["previous_minimum"] == 140
+    assert compare["S2"]["current_minimum"] == 175
+    assert compare["S2"]["previous_selected"] is True
+    assert compare["S2"]["current_selected"] is False
+    assert compare["S1"]["current_selected"] is True
+
+
+def test_seller_policy_evidence_detects_disagreement_with_recorded_ledger():
+    import pytest
+    from dashboard.sequence_replay import _seller_run_evidence
+    from dashboard.workflow_simulator import _run_session
+
+    result = _run_session("R1", ["S1", "S2"], 200, 150, 150, 5, 200)
+    result["before"]["seller_stock"]["S1"] = 999
+    with pytest.raises(ValueError, match="disagree"):
+        _seller_run_evidence(result)
+
+
+def test_seller_evidence_is_clearly_separated_from_public_messages():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    for marker in (
+        'def _seller_run_evidence(run: dict)',
+        'def _compare_seller_runs(previous: dict, current: dict)',
+        'seller_policy_evidence',
+        'previous_comparison',
+        'Seller policy verification',
+        'Effective seller policies and actual outcomes',
+        'Previous Run vs Current Run',
+        'run_result["seller_policy_evidence"] = _seller_run_evidence(run_result)',
+    ):
+        assert marker in source
