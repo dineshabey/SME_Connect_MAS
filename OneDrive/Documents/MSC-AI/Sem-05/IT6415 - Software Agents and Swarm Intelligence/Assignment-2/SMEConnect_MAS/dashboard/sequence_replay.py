@@ -662,10 +662,19 @@ def render_sequence_replay():
                   if reservation else "Not reserved"),
         "reason": outcome["reason"],
     }
-    components.html(
-        _sequence_html(result["sequence_events"], lifelines, summary,
-                       result["sequence_speed"]),
-        height=1600, scrolling=True,
+    sequence_document = _sequence_html(
+        result["sequence_events"], lifelines, summary, result["sequence_speed"]
+    )
+    components.html(sequence_document, height=1600, scrolling=True)
+    st.download_button(
+        "⬇ Download Standalone Full-Screen Replay (HTML)",
+        data=sequence_document,
+        file_name="SMEConnect_Sequence_Replay.html",
+        mime="text/html",
+        help="Open the downloaded HTML file in Chrome or Edge. "
+             "It includes the recorded animation and Full Screen button without "
+             "Streamlit iframe permissions. No external simulation is executed.",
+        key="seq_download_fullscreen",
     )
     with st.expander("Technical evidence — actual messages and decision logs"):
         _large_evidence_table(
