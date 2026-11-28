@@ -462,3 +462,26 @@ def test_sequence_fullscreen_and_fit_controls_are_real_and_replay_only():
     assert "_run_session(" not in iframe
     assert "run_delivery_coordination(" not in iframe
     assert "ReservationLedger" not in iframe
+
+
+def test_sequence_fullscreen_overview_uses_readable_event_cards_instead_of_tiny_svg():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    for marker in (
+        'id="sequence-overview"',
+        'class="sequence-overview"',
+        '.diagram.overview-active #sequence{display:none}',
+        'function renderOverview(){',
+        'overview.style.gridTemplateRows=',
+        'Math.ceil(ev.length/3)',
+        'j===index?"current"',
+        'card.onclick=()=>{stop();step(j)}',
+        'viewport.classList.toggle("overview-active",fitAll)',
+        'if(fitAll){',
+        'fitButton.textContent=fitAll?"◉ Detailed Sequence":"⊞ Fit Entire Sequence"',
+        '.shell:fullscreen:has(.diagram.overview-active) .detail{display:none}',
+    ):
+        assert marker in source
+    # The original event-by-event SVG is deliberately retained as a separate view.
+    assert 'function draw(){' in source
+    assert 'svg.replaceChildren();' in source
