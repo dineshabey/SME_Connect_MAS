@@ -895,6 +895,15 @@ def _agent_summary_html() -> str:
     normal retailer/seller/delivery sequence.
     """
     roles = {aid: (icon, role, detail) for aid, icon, role, detail in _AGENT_SUMMARIES}
+    goals = {
+        "R1": "Minimize purchasing cost",
+        "R2": "Meet demand with available stock",
+        "S1": "Maximize profit margin",
+        "S2": "Maximize sales volume",
+        "C1": "Coordinate and validate the order",
+        "D1": "Check delivery feasibility and quote the fee",
+        "M1": "Identify opportunities from market changes",
+    }
 
     def agent_box(aid: str, tone: str, facts: str) -> str:
         icon, role, detail = roles[aid]
@@ -905,6 +914,8 @@ def _agent_summary_html() -> str:
             f'{escape(_agent_label(aid))}</div>'
             f'<div class="seq-flow-role">{escape(role)}</div>'
             f'<div class="seq-flow-facts">{escape(facts)}</div>'
+            f'<div class="seq-flow-goal"><strong>Goal:</strong> '
+            f'{escape(goals[aid])}</div>'
             '</div>'
         )
 
@@ -1068,6 +1079,9 @@ _MAS_SUMMARY_CSS = """
 .seq-flow-node-name{font-size:clamp(20px,1.5vw,27px);font-weight:850;color:#fff}
 .seq-flow-role{font-size:17px;color:#b6ffe4;font-weight:750}
 .seq-flow-facts{font-size:18px;color:#e5f5f8;line-height:1.4}
+.seq-flow-goal{font-size:18px;color:#fff;line-height:1.45;
+ margin-top:8px;padding-top:9px;border-top:1px solid #ffffff4a}
+.seq-flow-goal strong{color:#b7ffe6;font-weight:850}
 .seq-flow-connector{min-height:83px;display:flex;align-items:center;
   flex-direction:column;justify-content:center;gap:2px;text-align:center}
 .seq-flow-connector span{color:#d5e9f3;font-size:17px;font-weight:750}
@@ -1089,7 +1103,7 @@ _MAS_SUMMARY_CSS = """
 @media(max-width:800px){.seq-flow-foot{grid-template-columns:1fr}
   .seq-flow-layout{padding:12px}.seq-flow-pair{gap:9px}
   .seq-flow-node{padding:12px;min-height:124px}
-  .seq-flow-node-name{font-size:19px}.seq-flow-facts{font-size:16px}
+  .seq-flow-node-name{font-size:19px}.seq-flow-facts,.seq-flow-goal{font-size:16px}
   .seq-flow-connector span{font-size:15px}
 }
 .seq-mas-features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
