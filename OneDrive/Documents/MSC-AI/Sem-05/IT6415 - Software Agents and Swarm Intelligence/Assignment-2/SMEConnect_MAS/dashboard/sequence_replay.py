@@ -15,6 +15,7 @@ import streamlit.components.v1 as components
 from dashboard.workflow_simulator import _run_session
 from smeconnect.environment.marketplace import build_agents
 from smeconnect.environment.catalogue import public_listings
+from smeconnect.environment.market_state import MarketSnapshot
 
 
 AGENT_DISPLAY_NAMES = {
@@ -733,6 +734,81 @@ def _sequence_preview_changed() -> None:
     )
 
 
+def _seller_market_snapshot(overrides: dict[str, dict] | None = None) -> MarketSnapshot:
+    """A validated, isolated what-if market: seller policies are not persisted."""
+    defaults = {agent.agent_id: agent for agent in build_agents() if agent.role == "seller"}
+    overrides = overrides or {}
+    if any(sid not in defaults for sid in overrides):
+        raise ValueError("Unknown seller override.")
+    stock, minimum, target = {}, {}, {}
+    for sid, values in overrides.items():
+        seller = defaults[sid]
+        new_min = float(values["minimum_price"])
+        new_target = float(values["target_price"])
+        new_stock = int(values["available_stock"])
+        if not (100 <= new_min <= 230 and 110 <= new_target <= 250
+                and new_target >= new_min and 0 <= new_stock <= 100000):
+            raise ValueError("Seller stock or prices are outside permitted demo limits.")
+        stock[sid] = new_stock
+        minimum[sid] = round(new_min - seller.minimum_price, 2)
+        target[sid] = round(new_target - seller.target_price, 2)
+    return MarketSnapshot(
+        seller_stock=stock,
+        seller_minimum_adjustment=minimum,
+        seller_target_adjustment=target,
+    )
+
+
+@st.dialog("⚙ Configure Seller Agent", width="large")
+def _edit_seller_popup(seller_id: str):
+    """Edit isolated seller decision constraints, not public catalogue prices."""
+    default = next(a for a in build_agents() if a.agent_id == seller_id)
+    saved = st.session_state.get("seq_seller_overrides", {}).get(seller_id, {})
+    st.markdown(f"### {_agent_label(seller_id)}")
+    st.caption(
+        "Viva sandbox · Changes affect the next negotiation and simulated "
+        "reservation only. Existing runs and default agent definitions are unchanged."
+    )
+    with st.form(f"seq_seller_form_{seller_id}"):
+        minimum = st.number_input(
+            "Minimum acceptable price (Rs.) · private decision rule",
+            min_value=100.0, max_value=230.0,
+            value=float(saved.get("minimum_price", default.minimum_price)), step=5.0,
+        )
+        target = st.number_input(
+            "Target selling price (Rs.) · private decision rule",
+            min_value=110.0, max_value=250.0,
+            value=float(saved.get("target_price", default.target_price)), step=5.0,
+        )
+        stock = st.number_input(
+            "Available stock (packets)",
+            min_value=0, max_value=100000,
+            value=int(saved.get("available_stock", default.available_stock)), step=50,
+        )
+        submitted = st.form_submit_button("✓ Apply seller changes", type="primary")
+    if submitted:
+        current = dict(st.session_state.get("seq_seller_overrides", {}))
+        current[seller_id] = {
+            "minimum_price": float(minimum),
+            "target_price": float(target),
+            "available_stock": int(stock),
+        }
+        try:
+            _seller_market_snapshot(current)
+        except ValueError as exc:
+            st.error(str(exc))
+        else:
+            st.session_state["seq_seller_overrides"] = current
+            _sequence_preview_changed()
+            st.rerun()
+    if st.button("↺ Reset seller to defaults", key=f"seq_reset_{seller_id}"):
+        current = dict(st.session_state.get("seq_seller_overrides", {}))
+        current.pop(seller_id, None)
+        st.session_state["seq_seller_overrides"] = current
+        _sequence_preview_changed()
+        st.rerun()
+
+
 def render_sequence_replay():
     presenting = bool(st.session_state.get("seq_presenting", False))
     if presenting and "sequence_run" not in st.session_state:
@@ -749,6 +825,11 @@ def render_sequence_replay():
         )
         agents = {a.agent_id: a for a in build_agents()}
         listings = {item.seller_id: item for item in public_listings()}
+        seller_overrides = st.session_state.get("seq_seller_overrides", {})
+        market_state = _seller_market_snapshot(seller_overrides)
+        scenario_sellers = {
+            a.agent_id: a for a in build_agents(market_state) if a.role == "seller"
+        }
         # These widgets are deliberately OUTSIDE st.form: every change reruns this
         # preview immediately. Only the explicit Run button calls _run_session().
         a, b, c = st.columns(3)
@@ -828,7 +909,8 @@ def render_sequence_replay():
         )
         for sid in seller_ids:
             listing = listings[sid]
-            stock_ok = int(quantity) <= listing.advertised_stock
+            agent = scenario_sellers[sid]
+            stock_ok = int(quantity) <= agent.available_stock
             profiles.append(
                 '<article class="seq-profile' + (' warn' if not stock_ok else '') + '">'
                 f'<h3>🏪 {escape(_agent_label(sid))}</h3>'
@@ -838,14 +920,31 @@ def render_sequence_replay():
                 f'<p><strong>Current request:</strong> {int(quantity):,} packets</p>'
                 f'<p><strong>Opening offer received:</strong> Rs.{offer:,.2f}</p>'
                 f'<p><strong>Public asking price:</strong> Rs.{listing.listed_price:,.2f}</p>'
-                f'<p><strong>Advertised stock:</strong> {listing.advertised_stock:,} packets</p>'
+                f'<p><strong>Scenario stock:</strong> {agent.available_stock:,} packets</p>'
                 f'<p><strong>Units after potential allocation:</strong> '
-                f'{max(0, listing.advertised_stock - int(quantity)):,}</p>'
+                f'{max(0, agent.available_stock - int(quantity)):,}</p>'
+                f'<p class="small">Private demo policy: minimum Rs.{agent.minimum_price:,.2f}; '
+                f'target Rs.{agent.target_price:,.2f}. Not exposed to other agents.</p>'
                 '<p class="small">Preview only · No seller decision until Run</p>'
                 '</article>'
             )
         profiles.append("</div>")
         st.markdown("".join(profiles), unsafe_allow_html=True)
+        # Streamlit-native buttons open actual modal dialogs. The styled HTML
+        # preview cards themselves contain no simulated/inert buttons.
+        action_columns = st.columns(max(1, len(seller_ids) + 1))
+        for position, sid in enumerate(seller_ids, start=1):
+            with action_columns[position]:
+                if st.button(
+                    f"⚙ Edit {_agent_label(sid)}", key=f"seq_edit_{sid}",
+                    use_container_width=True,
+                ):
+                    _edit_seller_popup(sid)
+        if seller_overrides:
+            st.info(
+                "Agent policy overrides are active for this demo only. "
+                "Run to see how the changed seller decisions affect negotiation."
+            )
         st.caption(
             f"Scenario preview · {len(seller_ids)} selected sellers · "
             f"{rounds} maximum negotiation rounds · Rs.{resale:,.2f} "
@@ -878,6 +977,7 @@ def render_sequence_replay():
                     retailer_id=retailer_id, seller_ids=seller_ids,
                     quantity=int(quantity), initial_price=float(offer),
                     target=float(target), rounds=rounds, resale_price=float(resale),
+                    market_state=market_state,
                 )
                 run_result["sequence_events"] = _sequence_events(run_result)
                 run_result["sequence_speed"] = speed
@@ -921,7 +1021,7 @@ def render_sequence_replay():
                 st.session_state["seq_presenting"] = False
                 st.session_state["seq_restore_inputs"] = True
                 st.rerun()
-    result = st.session_state.get("sequence_run")
+     result = st.session_state.get("sequence_run")
     if result is None:
         st.info("Select agents and press Run to generate the full recorded sequence.")
         return
