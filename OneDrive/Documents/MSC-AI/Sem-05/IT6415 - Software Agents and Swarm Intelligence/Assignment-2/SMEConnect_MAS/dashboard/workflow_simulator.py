@@ -13,6 +13,7 @@ import streamlit as st
 from dashboard.negotiation_viz import neon_scene
 from smeconnect.environment.marketplace import build_agents
 from smeconnect.environment.catalogue import public_listings
+from smeconnect.environment.market_state import MarketSnapshot
 from smeconnect.simulation.supplier_selection import run_supplier_competition
 from smeconnect.simulation.fulfillment import run_delivery_coordination
 from smeconnect.simulation.reservation_ledger import ReservationLedger
@@ -116,14 +117,15 @@ def _recorded_events(competition: dict, coordination: dict) -> list[dict]:
 
 def _run_session(retailer_id: str, seller_ids: list[str], quantity: int,
                  initial_price: float, target: float, rounds: int,
-                 resale_price: float) -> dict:
+                 resale_price: float, market_state: MarketSnapshot | None = None) -> dict:
     """One run generates an isolated one-time ledger; playback is read-only."""
     competition = run_supplier_competition(
         retailer_id=retailer_id, seller_ids=seller_ids, quantity=quantity,
         initial_price=initial_price, retailer_target=target,
         max_rounds=rounds, expected_retail_price=resale_price,
+        market_state=market_state,
     )
-    ledger = ReservationLedger.from_marketplace()
+    ledger = ReservationLedger.from_marketplace(market_state)
     before = {
         "seller_stock": dict(ledger.seller_stock),
         "retailer_demand": dict(ledger.retailer_demand),
@@ -142,6 +144,7 @@ def _run_session(retailer_id: str, seller_ids: list[str], quantity: int,
     return {
         "competition": competition,
         "coordination": coordination,
+        "market_state": market_state,
         "events": _recorded_events(competition, coordination),
         "before": before, "after": after,
         "params": {
