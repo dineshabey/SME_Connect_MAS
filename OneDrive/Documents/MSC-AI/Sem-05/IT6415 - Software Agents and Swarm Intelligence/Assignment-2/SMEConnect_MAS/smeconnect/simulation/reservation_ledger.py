@@ -2,6 +2,7 @@
 from dataclasses import dataclass, field
 from math import isfinite
 from smeconnect.environment.marketplace import build_agents
+from smeconnect.environment.market_state import MarketSnapshot
 
 @dataclass
 class ReservationLedger:
@@ -12,8 +13,8 @@ class ReservationLedger:
     reservations: list[dict] = field(default_factory=list)
 
     @classmethod
-    def from_marketplace(cls) -> "ReservationLedger":
-        agents = build_agents()
+    def from_marketplace(cls, market_state: MarketSnapshot | None = None) -> "ReservationLedger":
+        agents = build_agents(market_state)
         return cls(
             seller_stock={a.agent_id: a.available_stock for a in agents if a.role == "seller"},
             retailer_budget={a.agent_id: a.budget for a in agents if a.role == "retailer"},
