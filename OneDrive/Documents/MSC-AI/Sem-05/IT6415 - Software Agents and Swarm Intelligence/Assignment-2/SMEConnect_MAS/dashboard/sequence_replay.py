@@ -157,19 +157,22 @@ radial-gradient(circle at 50% 20%,#163a54,#0d1e34);scroll-behavior:smooth}
 gap:7px;padding:9px;height:100%;width:100%;min-height:0}
 .diagram.overview-active .sequence-overview{display:grid}
 .diagram.overview-active #sequence{display:none}
-.diagram.overview-active .sticky-agent-header{display:none}
-/* Agent identities remain pinned while the message lifelines scroll beneath. */
-.sticky-agent-header{position:sticky;top:0;z-index:12;display:block;
-  width:100%;min-width:720px;height:91px;margin-bottom:-91px;
-  background:linear-gradient(180deg,#10263e 75%,rgba(16,38,62,.95));
-  border-bottom:1px solid #43738a;pointer-events:none}
-.sticky-agent-label{position:absolute;top:8px;transform:translateX(-50%);
-  width:clamp(95px,13vw,205px);min-height:63px;padding:9px 7px;
-  display:flex;align-items:center;justify-content:center;text-align:center;
-  border:1px solid #75bfd2;border-radius:12px;background:#23536d;
-  box-shadow:0 5px 14px #061829a8;
-  color:#fff;font-size:clamp(11px,1.1vw,18px);font-weight:800;line-height:1.2}
-.shell:fullscreen .sticky-agent-label{font-size:clamp(11px,1vw,17px)}
+/* Header is OUTSIDE the scrollable diagram; vertical scrolling cannot move it. */
+.agent-header-viewport{height:85px;position:relative;overflow:hidden;
+ border:1px solid #446f86;border-bottom:0;border-radius:14px 14px 0 0;
+ background:#10263e;flex-shrink:0}
+.agent-header-track{height:100%;position:relative;min-width:720px}
+.agent-header-label{position:absolute;top:9px;transform:translateX(-50%);
+ width:clamp(108px,12vw,190px);min-height:62px;padding:8px 7px;
+ display:flex;align-items:center;justify-content:center;text-align:center;
+ border:1px solid #75bfd2;border-radius:11px;background:#23536d;
+ color:#fff;font-size:clamp(12px,1vw,18px);font-weight:800;line-height:1.2;
+ box-shadow:0 5px 14px #061829a8}
+.presentation-stage:has(.diagram.overview-active) .agent-header-viewport{display:none}
+.presentation-stage .diagram{border-radius:0 0 14px 14px}
+.presentation-stage:has(.diagram.overview-active) .diagram{border-radius:14px}
+.shell:fullscreen .agent-header-viewport{height:73px}
+.shell:fullscreen .agent-header-label{min-height:56px;font-size:clamp(11px,.94vw,17px)}
 
 .overview-event{position:relative;min-height:0;min-width:0;border:1px solid #497a94;
 border-radius:9px;padding:7px 10px;text-align:left;background:#173650;color:#e1eff9;
@@ -371,7 +374,8 @@ button[aria-pressed="true"]{background:#166b63;border-color:#8cebd9}
 </div><section id="final" class="final" hidden></section>
 </aside>
 <div class="presentation-stage">
-<div class="diagram" id="viewport"><div class="sticky-agent-header" id="sticky-agent-header" aria-label="Persistent agent names"></div><svg id="sequence" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence of recorded agent interactions"></svg><div id="sequence-overview" class="sequence-overview" role="group" aria-label="All recorded events in reading order, left to right and top to bottom"></div></div>
+<div class="agent-header-viewport" id="agent-header-viewport" aria-label="Agent names stay fixed while messages scroll"><div class="agent-header-track" id="agent-header-track"></div></div>
+<div class="diagram" id="viewport"><svg id="sequence" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence of recorded agent interactions"></svg><div id="sequence-overview" class="sequence-overview" role="group" aria-label="All recorded events in reading order, left to right and top to bottom"></div></div>
 <div class="overview-caption" id="overview-caption">Reading order: left → right, then next row ↓ · Select an event to inspect its explanation.</div>
 </div></div></main>
 <script>
@@ -403,18 +407,33 @@ const ns="http://www.w3.org/2000/svg",left=105,right=1120;
 const x=i=>left+i*(right-left)/Math.max(actors.length-1,1);
 const H=166+ev.length*94;
 const chosen=new Map(actors.map((v,i)=>[v,i]));
-const stickyHeader=document.getElementById("sticky-agent-header");
-function renderStickyAgentHeader(){
- stickyHeader.replaceChildren();
- actors.forEach((agent,j)=>{
+const headerViewport=document.getElementById("agent-header-viewport");
+const headerTrack=document.getElementById("agent-header-track");
+function renderAgentHeader(){
+ headerTrack.replaceChildren();
+ actors.forEach(agent=>{
    const label=document.createElement("div");
-   label.className="sticky-agent-label";
-   label.style.left=(x(j)/1220*100)+"%";
+   label.className="agent-header-label";
+   label.dataset.agentId=agent;
    label.textContent=actorLabel(agent);
-   stickyHeader.appendChild(label);
+   headerTrack.appendChild(label);
  });
 }
-renderStickyAgentHeader();
+function alignAgentHeader(){
+ if(!svg.getScreenCTM())return;
+ const rect=svg.getBoundingClientRect();
+ const matrix=svg.getScreenCTM();
+ headerTrack.style.width=rect.width+"px";
+ actors.forEach((agent,j)=>{
+   const label=headerTrack.children[j];
+   // Convert SVG viewBox coordinates to precise rendered pixels.
+   const px=matrix.a*x(j)+matrix.e-rect.left;
+   label.style.left=px+"px";
+ });
+ headerTrack.style.transform="translateX("+(-viewport.scrollLeft)+"px)";
+}
+renderAgentHeader();
+viewport.addEventListener("scroll",alignAgentHeader,{passive:true});
 let index=0,timer=null,fitAll=false;
 const shell=document.querySelector(".shell"),fullButton=document.getElementById("fullscreen");
 const fitButton=document.getElementById("fit");
@@ -559,6 +578,7 @@ function draw(){
       "font-size":18,"font-weight":700,"text-anchor":"middle",fill:"#f1ffff"},label);
   }
  });
+ requestAnimationFrame(alignAgentHeader);
  const focusY=135+index*94;
  if(fitAll){
    viewport.scrollTop=0;viewport.scrollLeft=0;
