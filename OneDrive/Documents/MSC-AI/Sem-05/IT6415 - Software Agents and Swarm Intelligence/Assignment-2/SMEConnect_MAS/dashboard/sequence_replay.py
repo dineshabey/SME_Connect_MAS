@@ -727,6 +727,71 @@ def _large_evidence_table(rows: list[dict], *, columns: list[str]) -> None:
     )
 
 
+def _seller_run_evidence(run: dict) -> list[dict]:
+    """Verify that every seller's effective negotiation policy matches the ledger.
+
+    Values come from actual recorded seller objects, not from draft UI inputs.
+    """
+    rows = []
+    evaluated = run["competition"]["evaluated_seller_ids"]
+    before = run["before"]["seller_stock"]
+    after = run["after"]["seller_stock"]
+    selected = run["competition"]["selection"]["selected_seller_id"]
+    reservation = run["coordination"].get("reservation")
+    for sid in evaluated:
+        record = run["competition"]["negotiations"][sid]
+        seller = record["seller"]
+        if seller.agent_id != sid or before[sid] != seller.available_stock:
+            raise ValueError(
+                f"Recorded {sid} negotiation policy and reservation ledger disagree."
+            )
+        booked = (
+            reservation is not None
+            and reservation["seller_id"] == sid
+            and run["coordination"]["status"] == "RESERVED_SIMULATED"
+        )
+        expected_after = before[sid] - (reservation["quantity"] if booked else 0)
+        if after[sid] != expected_after:
+            raise ValueError(f"Recorded {sid} stock allocation is inconsistent.")
+        rows.append({
+            "seller_id": sid,
+            "minimum_price": seller.minimum_price,
+            "target_price": seller.target_price,
+            "starting_stock": seller.available_stock,
+            "negotiation_status": record["status"],
+            "agreed_price": record["agreed_price"],
+            "selected": sid == selected,
+            "reserved_packets": reservation["quantity"] if booked else 0,
+            "remaining_stock": after[sid],
+        })
+    return rows
+
+
+def _compare_seller_runs(previous: dict, current: dict) -> list[dict]:
+    """Compare completed runs, never preview values or hypothetical outcomes."""
+    old = {row["seller_id"]: row for row in _seller_run_evidence(previous)}
+    new = {row["seller_id"]: row for row in _seller_run_evidence(current)}
+    rows = []
+    for sid in sorted(set(old) & set(new)):
+        before, after = old[sid], new[sid]
+        rows.append({
+            "seller_id": sid,
+            "previous_minimum": before["minimum_price"],
+            "current_minimum": after["minimum_price"],
+            "previous_target": before["target_price"],
+            "current_target": after["target_price"],
+            "previous_stock": before["starting_stock"],
+            "current_stock": after["starting_stock"],
+            "previous_agreement": before["agreed_price"],
+            "current_agreement": after["agreed_price"],
+            "previous_status": before["negotiation_status"],
+            "current_status": after["negotiation_status"],
+            "previous_selected": before["selected"],
+            "current_selected": after["selected"],
+        })
+    return rows
+
+
 def _sequence_preview_changed() -> None:
     """Mark current controls as a draft; never execute agent logic in callbacks."""
     st.session_state["seq_preview_revision"] = (
@@ -983,6 +1048,12 @@ def render_sequence_replay():
                 )
                 run_result["sequence_events"] = _sequence_events(run_result)
                 run_result["sequence_speed"] = speed
+                run_result["seller_policy_evidence"] = _seller_run_evidence(run_result)
+                previous_run = st.session_state.get("sequence_run")
+                if previous_run is not None:
+                    run_result["previous_comparison"] = _compare_seller_runs(
+                        previous_run, run_result
+                    )
                 st.session_state["sequence_run"] = run_result
                 st.session_state["seq_last_run_revision"] = st.session_state.get("seq_preview_revision", 0)
                 st.session_state["seq_saved_controls"] = {
@@ -1073,6 +1144,43 @@ def render_sequence_replay():
              "Streamlit iframe permissions. No external simulation is executed.",
         key="seq_download_fullscreen",
     )
+    with st.expander("✅ Seller policy verification — actual values used in this run", expanded=True):
+        st.caption(
+            "Verified from the Seller Agent objects recorded by LangGraph negotiation "
+            "and reconciled with the simulated reservation ledger. Private prices are "
+            "shown only in this professor/demo evidence view, not sent to buyers."
+        )
+        st.markdown("#### Effective seller policies and actual outcomes")
+        rows = _seller_run_evidence(result)
+        _large_evidence_table(
+            rows, columns=[
+                "seller_id", "minimum_price", "target_price", "starting_stock",
+                "negotiation_status", "agreed_price", "selected",
+                "reserved_packets", "remaining_stock",
+            ],
+        )
+        st.markdown(
+            f"**Retailer-selected supplier:** "
+            f"{result['competition']['selection']['selected_seller_id'] or 'None'} "
+            f"· **Final coordination status:** {result['coordination']['status']}"
+        )
+        if result.get("previous_comparison"):
+            st.markdown("#### Previous Run vs Current Run")
+            _large_evidence_table(
+                result["previous_comparison"],
+                columns=[
+                    "seller_id", "previous_minimum", "current_minimum",
+                    "previous_target", "current_target", "previous_stock",
+                    "current_stock", "previous_status", "current_status",
+                    "previous_agreement", "current_agreement",
+                    "previous_selected", "current_selected",
+                ],
+            )
+        else:
+            st.info(
+                "Run another scenario after editing S1/S2 to see an actual "
+                "before-and-after comparison."
+            )
     with st.expander("Technical evidence — actual messages and decision logs"):
         _large_evidence_table(
             result["sequence_events"],
