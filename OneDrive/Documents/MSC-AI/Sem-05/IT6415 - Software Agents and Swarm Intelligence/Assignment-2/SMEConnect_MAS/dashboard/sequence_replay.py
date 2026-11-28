@@ -1115,6 +1115,17 @@ def render_sequence_replay():
             "Click Run and animate agent sequence to update the recorded evidence."
         )
     st.markdown("### Animated message sequence")
+    effective_rows = _seller_run_evidence(result)
+    st.caption(
+        "ACTUAL POLICY USED IN THIS RUN · " +
+        " | ".join(
+            f"{row['seller_id']}: min Rs.{row['minimum_price']:,.2f}, "
+            f"target Rs.{row['target_price']:,.2f}, "
+            f"stock {row['starting_stock']}, "
+            f"result {row['negotiation_status']}"
+            for row in effective_rows
+        )
+    )
     selected = result["competition"]["evaluated_seller_ids"]
     # Keep actor columns grounded in the selected scenario. The coordinator
     # and D1 remain visible to explain the subsequent delivery phase.
