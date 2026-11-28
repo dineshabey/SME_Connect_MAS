@@ -818,3 +818,54 @@ def test_sequence_final_decision_card_is_responsive_and_not_buried_in_expander()
     assert source.index("st.markdown(_final_decision_html(result)") < source.index(
         'with st.expander("✅ Seller policy verification'
     )
+
+
+def test_sequence_viva_summary_includes_all_seven_registered_agents():
+    from dashboard.sequence_replay import _AGENT_SUMMARIES, _agent_summary_html
+    from smeconnect.environment.marketplace import build_agents
+
+    known_ids = {agent.agent_id for agent in build_agents()}
+    summary_ids = [agent_id for agent_id, *_ in _AGENT_SUMMARIES]
+    assert len(summary_ids) == len(known_ids) == 7
+    assert set(summary_ids) == known_ids
+    html = _agent_summary_html()
+    for agent_id in known_ids:
+        assert agent_id in html
+    assert "OUR 7 MULTI-AGENT SYSTEM ROLES" in html
+    assert "Market Agent M1 acts in Market Adaptation" in html
+
+
+def test_sequence_viva_conclusion_maps_real_mas_features_to_agents():
+    from dashboard.sequence_replay import _MAS_FEATURE_SUMMARIES, _mas_features_html
+
+    features = {name for name, *_ in _MAS_FEATURE_SUMMARIES}
+    assert features == {
+        "Autonomy", "Agent Communication", "Negotiation", "Competition",
+        "Cooperation", "Coordination", "Reactivity",
+        "Goal-oriented decisions",
+    }
+    html = _mas_features_html()
+    assert "MULTI-AGENT FEATURES" in html
+    assert "Which agent demonstrates which MAS concept?" in html
+    assert "LangGraph" in html
+    assert "sequential synthetic academic simulation" in html
+
+
+def test_viva_summary_position_and_readability_in_sequence_page():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    render = source.split("def render_sequence_replay():", 1)[1]
+    assert render.index("st.markdown(_agent_summary_html()") < render.index(
+        'st.markdown("### Configure and run a real sequence")'
+    )
+    assert render.index("st.markdown(_mas_features_html()") > render.index(
+        'with st.expander("Technical evidence'
+    )
+    for marker in (
+        ".seq-mas-agents{display:grid;",
+        ".seq-mas-features{display:grid;",
+        ".seq-mas-agent-title{font-size:",
+        ".seq-mas-feature-title{font-size:",
+        "@media(max-width:760px)",
+    ):
+        assert marker in source
