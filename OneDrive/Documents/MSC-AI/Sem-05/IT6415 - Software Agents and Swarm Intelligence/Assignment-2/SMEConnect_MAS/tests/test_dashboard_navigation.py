@@ -562,15 +562,21 @@ def test_sequence_edit_scenario_restores_previous_input_values():
         assert '"'+key+'":' in source
 
 
-def test_sequence_agent_names_remain_sticky_while_messages_scroll():
+def test_sequence_agent_names_remain_fixed_outside_scrollable_diagram():
     source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
     ast.parse(source)
-    assert 'id="sticky-agent-header"' in source
-    assert '.sticky-agent-header{position:sticky;top:0;' in source
-    assert '.sticky-agent-label{position:absolute;' in source
-    assert 'function renderStickyAgentHeader(){' in source
+    assert 'id="agent-header-viewport"' in source
+    assert 'id="agent-header-track"' in source
+    assert 'function renderAgentHeader(){' in source
+    assert 'function alignAgentHeader(){' in source
     assert 'label.textContent=actorLabel(agent);' in source
-    assert 'label.style.left=(x(j)/1220*100)+"%";' in source
-    assert 'renderStickyAgentHeader();' in source
-    assert '.diagram.overview-active .sticky-agent-header{display:none}' in source
-    assert 'const cx=x(j);' in source  # Lifelines still align with pinned labels
+    assert 'viewport.addEventListener("scroll",alignAgentHeader' in source
+    assert 'requestAnimationFrame(alignAgentHeader);' in source
+    assert 'matrix.a*x(j)+matrix.e-rect.left' in source
+    assert '.presentation-stage:has(.diagram.overview-active) .agent-header-viewport{display:none}' in source
+    html = source.split("page = r'''", 1)[1].split("'''", 1)[0]
+    header_pos = html.index('id="agent-header-viewport"')
+    viewport_pos = html.index('id="viewport"')
+    assert header_pos < viewport_pos
+    assert 'id="sticky-agent-header"' not in html
+    assert 'position:sticky' not in html
