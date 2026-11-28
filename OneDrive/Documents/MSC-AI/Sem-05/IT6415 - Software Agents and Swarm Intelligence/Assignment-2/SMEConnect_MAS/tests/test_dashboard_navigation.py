@@ -525,3 +525,25 @@ def test_sequence_run_attempts_fullscreen_with_browser_safe_fallback():
     # Fullscreen/replay controls must not re-execute backend agent actions.
     embedded_html = source.split("page = r'''", 1)[1].split("'''", 1)[0]
     assert '_run_session(' not in embedded_html
+
+
+def test_sequence_run_enters_presentation_mode_and_hides_setup():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert 'presenting = bool(st.session_state.get("seq_presenting", False))' in source
+    assert 'if not presenting:' in source
+    assert 'st.markdown("### Configure and run a real sequence")' in source
+    assert 'st.markdown("### Live scenario preview")' in source
+    assert 'st.session_state["seq_presenting"] = True' in source
+    assert 'st.session_state["seq_presenting"] = False' in source
+    assert '"✎ Edit Scenario"' in source
+    assert 'key="seq_edit_scenario"' in source
+    assert 'if not st.session_state.get("seq_presenting", False) and (' in source
+    assert 'st.rerun()' in source
+    # Editing the UI simply changes session presentation state, never reruns
+    # the negotiation/reservation engine until the explicit Run button is clicked.
+    edit_block = source.split('key="seq_edit_scenario"', 1)[1].split(
+        'result = st.session_state.get("sequence_run")', 1
+    )[0]
+    assert '_run_session(' not in edit_block
+    assert 'st.session_state["seq_presenting"] = False' in edit_block
