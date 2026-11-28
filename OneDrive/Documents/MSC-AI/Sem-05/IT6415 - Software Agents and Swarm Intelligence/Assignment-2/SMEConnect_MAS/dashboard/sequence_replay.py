@@ -1021,7 +1021,7 @@ def render_sequence_replay():
                 st.session_state["seq_presenting"] = False
                 st.session_state["seq_restore_inputs"] = True
                 st.rerun()
-     result = st.session_state.get("sequence_run")
+    result = st.session_state.get("sequence_run")
     if result is None:
         st.info("Select agents and press Run to generate the full recorded sequence.")
         return
