@@ -951,7 +951,26 @@ def render_sequence_replay():
             font-size:17px;font-weight:750;margin-bottom:10px;
             color:#a8ffdf;background:#16483f;border:1px solid #367969}
           .seq-profile.warn .status{color:#ffe4b8;background:#604422;border-color:#c58a55}
-          .seq-profile .small{font-size:17px!important;color:#bcd7e5!important}
+          .seq-profile .small{font-size:18px!important;color:#d8edf6!important}
+          .seq-policy-box{margin-top:19px;padding:17px 19px;border-radius:15px;
+            background:linear-gradient(135deg,#104a42,#176258);
+            border:2px solid #47cfa6;box-shadow:0 8px 18px #071e2366}
+          .seq-policy-heading{font-size:22px;font-weight:850;color:#f2fffb;
+            line-height:1.3;margin-bottom:12px;letter-spacing:.01em}
+          .seq-policy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+            gap:10px}
+          .seq-policy-value{background:#0e3837;border:1px solid #50a98f;
+            border-radius:10px;padding:11px 12px;min-width:0}
+          .seq-policy-value span{display:block;font-size:18px;font-weight:700;color:#c5ffea;
+            line-height:1.3}
+          .seq-policy-value b{display:block;font-size:24px;color:#fff;
+            line-height:1.4;margin-top:5px;overflow-wrap:anywhere}
+          .seq-policy-info{margin:13px 0 0!important;font-size:18px!important;
+            color:#e0fff5!important;line-height:1.5!important}
+          .seq-preview-note{font-size:18px!important;margin-top:12px!important;
+            color:#deeff4!important}
+          @media(max-width:700px){.seq-policy-grid{grid-template-columns:1fr}}
+
           .seq-preview-hint{font-size:19px;color:#c0d9e7}
           @media(max-width:1000px){.seq-profiles{grid-template-columns:1fr}}
         </style>
@@ -970,8 +989,17 @@ def render_sequence_replay():
             f'<p><strong>Target:</strong> Rs.{target:,.2f} / packet</p>'
             f'<p><strong>Estimated opening cost:</strong> Rs.{estimate:,.2f}</p>'
             f'<p><strong>Expected gross margin at offer:</strong> Rs.{estimated_margin:,.2f}</p>'
-            f'<p class="small">Agent baseline · Demand {buyer.demand:,} packets '
-            f'· Budget Rs.{buyer.budget:,.2f}</p>'
+            '<div class="seq-policy-box">'
+            '<div class="seq-policy-heading">🟢 Retailer Agent Limits</div>'
+            '<div class="seq-policy-grid">'
+            '<div class="seq-policy-value"><span>Registered Demand</span>'
+            f'<b>{buyer.demand:,} packets</b></div>'
+            '<div class="seq-policy-value"><span>Available Budget</span>'
+            f'<b>Rs.{buyer.budget:,.2f}</b></div>'
+            '</div>'
+            '<p class="seq-policy-info">Demand = maximum packets this retailer '
+            'needs. Budget = maximum funds available for buying.</p>'
+            '</div>'
             '</article>'
         )
         for sid in seller_ids:
@@ -990,9 +1018,19 @@ def render_sequence_replay():
                 f'<p><strong>Scenario stock:</strong> {agent.available_stock:,} packets</p>'
                 f'<p><strong>Units after potential allocation:</strong> '
                 f'{max(0, agent.available_stock - int(quantity)):,}</p>'
-                f'<p class="small">Private demo policy: minimum Rs.{agent.minimum_price:,.2f}; '
-                f'target Rs.{agent.target_price:,.2f}. Not exposed to other agents.</p>'
-                '<p class="small">Preview only · No seller decision until Run</p>'
+                '<div class="seq-policy-box">'
+                '<div class="seq-policy-heading">🟢 Seller Private Pricing Rules</div>'
+                '<div class="seq-policy-grid">'
+                '<div class="seq-policy-value"><span>Minimum Acceptable Price</span>'
+                f'<b>Rs.{agent.minimum_price:,.2f}</b></div>'
+                '<div class="seq-policy-value"><span>Target Selling Price</span>'
+                f'<b>Rs.{agent.target_price:,.2f}</b></div>'
+                '</div>'
+                '<p class="seq-policy-info">Minimum = lowest price the seller '
+                'can accept. Target = preferred selling price. '
+                'Shown for viva explanation only; not shared with buyer agents.</p>'
+                '</div>'
+                '<p class="seq-preview-note">Preview only · The seller decides after Run.</p>'
                 '</article>'
             )
         profiles.append("</div>")
