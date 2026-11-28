@@ -298,3 +298,11 @@ The Sequence Replay's **⛶ Full Screen** now opens a readable **three-column ch
 The **◉ Detailed Sequence** button returns to the original tall animated sequence-diagram SVG with follow-scrolling. Clicking **⊞ Fit Entire Sequence** switches back to the full-history cards. The number of storyboard rows follows the actual number of recorded events. The fullscreen presentation favors readable labels at normal desktop/projector sizes; a large number of events may still make it necessary to choose Detailed Sequence for precise price or explanation inspection.
 
 No replay/display control changes simulation state or generates additional synthetic reservations.
+
+#### Presenter cockpit layout and automatic fullscreen request
+
+The **🔀 Sequence Replay** viewer now arranges **Current Event / Agent Decision Explained / Final Outcome** in a compact left column and gives the right column to the animated sequence diagram or chronological overview. In true fullscreen the container uses the viewport height (`100dvh`) without page scrolling and adapts text and summary size for projector screens. All recorded messages/decision reasons remain unchanged.
+
+After **Run and animate agent sequence**, the embedded viewer starts playback and makes a **best-effort automatic Fullscreen API request**. Modern browsers generally disallow this because the Streamlit Run click and the iframe initialization are different browser events: user activation is not transferred. When that happens, click **▶ Start Presentation Full Screen** inside the viewer. This directly triggered button enters fullscreen and starts the recorded animation; pressing Escape exits. The existing **⬇ Download Standalone Full-Screen Replay (HTML)** is also available if Streamlit iframe permissions prohibit fullscreen.
+
+**No backend re-execution:** the Full Screen, Fit Entire Sequence, Play, and presentation controls only replay the trace already computed and do not reserve resources again.
