@@ -881,21 +881,94 @@ _MAS_NOT_DEMONSTRATED = (
 
 
 def _agent_summary_html() -> str:
-    cards = "".join(
-        '<div class="seq-mas-agent">'
-        f'<div class="seq-mas-agent-title">{escape(symbol)} {escape(_agent_label(aid))}</div>'
-        f'<div class="seq-mas-agent-type">{escape(role)}</div>'
-        f'<div class="seq-mas-agent-body">{escape(description)}</div>'
-        '</div>'
-        for aid, symbol, role, description in _AGENT_SUMMARIES
+    """Flow diagram of actual workflow roles and concise agent responsibilities.
+
+    M1 is deliberately shown separately: it does not send messages in the
+    normal retailer/seller/delivery sequence.
+    """
+    roles = {aid: (icon, role, detail) for aid, icon, role, detail in _AGENT_SUMMARIES}
+
+    def agent_box(aid: str, tone: str, facts: str) -> str:
+        icon, role, detail = roles[aid]
+        return (
+            f'<div class="seq-flow-node seq-flow-{tone}" role="group" '
+            f'aria-label="{escape(_agent_label(aid))}">'
+            f'<div class="seq-flow-node-name">{escape(icon)} '
+            f'{escape(_agent_label(aid))}</div>'
+            f'<div class="seq-flow-role">{escape(role)}</div>'
+            f'<div class="seq-flow-facts">{escape(facts)}</div>'
+            '</div>'
+        )
+
+    retailer_boxes = (
+        agent_box("R1", "retailer", "Demand · budget · maximum price")
+        + agent_box("R2", "retailer", "Demand · budget · availability")
+    )
+    seller_boxes = (
+        agent_box("S1", "seller", "Stock · private minimum · target price")
+        + agent_box("S2", "seller", "Stock · private minimum · target price")
+    )
+    coordinator = agent_box(
+        "C1", "coordinator",
+        "Seller discovery · validate selected offer · reserve resources"
+    )
+    delivery = agent_box("D1", "delivery", "Available capacity · delivery fee")
+    market = agent_box(
+        "M1", "market", "Controlled market signals in adaptation experiments"
     )
     return (
-        '<section class="seq-mas-section" aria-label="Registered multi-agent roles">'
+        '<section class="seq-mas-section seq-flow-section" '
+        'aria-label="Multi-agent request and reservation data flow">'
         '<div class="seq-mas-heading">Agent Network</div>'
-        '<div class="seq-mas-subheading">Seven agents with distinct decision-making responsibilities</div>'
-        f'<div class="seq-mas-agents">{cards}</div>'
-        '<div class="seq-mas-disclaimer">Not all seven agents participate in every replay. '
-        'Market Agent M1 acts in Market Adaptation experiments, not the normal order sequence.</div>'
+        '<div class="seq-mas-subheading">Request → Negotiation → Selection → '
+        'Coordination → Reservation</div>'
+        '<div class="seq-flow-layout" role="img" '
+        'aria-label="Retailer R1 or R2 requests offers from sellers S1 and S2. '
+        'The retailer selects a feasible supplier. Coordinator C1 verifies the '
+        'agreement and asks delivery agent D1 for a capacity and fee quote, '
+        'then reserves simulated resources.">'
+        '<div class="seq-flow-stage-label">1 · Retailer Request</div>'
+        f'<div class="seq-flow-pair">{retailer_boxes}</div>'
+        '<div class="seq-flow-connector"><span>Quantity · target price · '
+        'opening offer</span><i aria-hidden="true">↓</i></div>'
+        '<div class="seq-flow-stage-label">2 · Independent Seller Negotiation</div>'
+        f'<div class="seq-flow-pair">{seller_boxes}</div>'
+        '<div class="seq-flow-connector"><span>PROPOSE ↔ COUNTER / ACCEPT / REJECT</span>'
+        '<i aria-hidden="true">↓</i></div>'
+        '<div class="seq-flow-stage-label">3 · Retailer-Side Supplier Selection</div>'
+        '<div class="seq-flow-decision"><strong>Compare Feasible Offers</strong>'
+        '<span>Retailer selects one supplier using price, budget and '
+        'expected margin checks</span></div>'
+        '<div class="seq-flow-connector"><span>Selected agreement</span>'
+        '<i aria-hidden="true">↓</i></div>'
+        '<div class="seq-flow-stage-label">4 · Coordination</div>'
+        f'<div class="seq-flow-single">{coordinator}</div>'
+        '<div class="seq-flow-connector"><span>CFP ↔ delivery quote</span>'
+        '<i aria-hidden="true">↓</i></div>'
+        '<div class="seq-flow-stage-label">5 · Delivery Feasibility</div>'
+        f'<div class="seq-flow-single">{delivery}</div>'
+        '<div class="seq-flow-connector"><span>Capacity, fee and retailer approval '
+        'returned to C1</span><i aria-hidden="true">↓</i></div>'
+        '<div class="seq-flow-stage-label">6 · Final Outcome</div>'
+        '<div class="seq-flow-result"><strong>Simulated Reservation Decision</strong>'
+        '<span>Coordinator checks seller stock, retailer demand and budget, '
+        'and delivery capacity before reserving or rejecting</span></div>'
+        '</div>'
+        '<div class="seq-flow-foot">'
+        '<div class="seq-flow-langgraph"><strong>Why LangGraph?</strong>'
+        '<span>Separate stateful decision workflows for seller, retailer and '
+        'delivery agents make policy checks, branching decisions and replay '
+        'evidence explicit. Pydantic messages and the in-memory message bus '
+        'handle communication; LangGraph is not the message bus.</span></div>'
+        '<div class="seq-flow-market">'
+        f'{market}'
+        '<div class="seq-flow-market-note">Separate module · Market Agent M1 acts '
+        'in Market Adaptation experiments, not in the order sequence.</div>'
+        '</div></div>'
+        '<div class="seq-mas-disclaimer">One retailer scenario runs at a time; '
+        'S1 and S2 are the currently implemented sellers. The diagram explains '
+        'the logical flow, not a distributed deployment. No real payment or '
+        'shipment is performed.</div>'
         '</section>'
     )
 
@@ -951,12 +1024,51 @@ _MAS_SUMMARY_CSS = """
 .seq-mas-heading{font-size:clamp(24px,2vw,31px);color:#fff;font-weight:850;
   line-height:1.3;letter-spacing:.01em}
 .seq-mas-subheading{font-size:19px;color:#c3eae9;margin:6px 0 18px}
-.seq-mas-agents{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.seq-mas-agent{padding:17px 16px;border:1px solid #548b9d;border-radius:15px;
-  background:linear-gradient(145deg,#22475c,#194556);min-width:0}
-.seq-mas-agent-title{font-size:clamp(19px,1.5vw,25px);font-weight:850;color:#fff}
-.seq-mas-agent-type{font-size:17px;font-weight:800;color:#9cf4d9;margin:5px 0 9px}
-.seq-mas-agent-body{font-size:18px;line-height:1.45;color:#e0f1f5}
+.seq-flow-section{max-width:100%}
+.seq-flow-layout{display:flex;flex-direction:column;align-items:center;
+  gap:0;padding:22px;border-radius:18px;border:1px solid #4a829a;
+  background:linear-gradient(180deg,#102638,#153a4b);min-width:0}
+.seq-flow-stage-label{font-size:18px;font-weight:800;color:#a2f2e0;
+  letter-spacing:.025em;text-align:center;margin:4px 0 12px}
+.seq-flow-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  width:min(100%,1060px);gap:18px}
+.seq-flow-single{width:min(100%,620px)}
+.seq-flow-node{border:2px solid #659ab2;border-radius:15px;
+  min-height:116px;padding:18px 22px;background:#21485c;
+  display:flex;flex-direction:column;justify-content:center;gap:5px;
+  box-shadow:0 8px 20px #06172465}
+.seq-flow-retailer{background:#214772;border-color:#60b4e8}
+.seq-flow-seller{background:#195748;border-color:#66d5a8}
+.seq-flow-coordinator{background:#3a3765;border-color:#b0a7f4}
+.seq-flow-delivery{background:#574327;border-color:#e7ba75}
+.seq-flow-market{background:#254858;border-color:#78a8be}
+.seq-flow-node-name{font-size:clamp(20px,1.5vw,27px);font-weight:850;color:#fff}
+.seq-flow-role{font-size:17px;color:#b6ffe4;font-weight:750}
+.seq-flow-facts{font-size:18px;color:#e5f5f8;line-height:1.4}
+.seq-flow-connector{min-height:83px;display:flex;align-items:center;
+  flex-direction:column;justify-content:center;gap:2px;text-align:center}
+.seq-flow-connector span{color:#d5e9f3;font-size:17px;font-weight:750}
+.seq-flow-connector i{font-size:39px;line-height:1;color:#68e6dc;font-style:normal}
+.seq-flow-decision,.seq-flow-result{width:min(100%,720px);border-radius:15px;
+  padding:20px;text-align:center;display:flex;flex-direction:column;gap:7px;
+  border:2px solid #57b3c3;background:#174656}
+.seq-flow-result{background:#124d43;border-color:#60d9b5}
+.seq-flow-decision strong,.seq-flow-result strong{font-size:23px;color:#fff}
+.seq-flow-decision span,.seq-flow-result span{font-size:18px;color:#e5faf6}
+.seq-flow-foot{display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);
+  gap:14px;margin-top:17px}
+.seq-flow-langgraph,.seq-flow-market{padding:18px 20px;border-radius:14px;
+  border:1px solid #5d9baf;background:#173e50}
+.seq-flow-langgraph strong{display:block;font-size:22px;color:#fff;margin-bottom:8px}
+.seq-flow-langgraph span{font-size:19px;line-height:1.5;color:#dff3fa}
+.seq-flow-market .seq-flow-node{min-height:100px}
+.seq-flow-market-note{font-size:16px;color:#cde6ed;margin-top:10px}
+@media(max-width:800px){.seq-flow-foot{grid-template-columns:1fr}
+  .seq-flow-layout{padding:12px}.seq-flow-pair{gap:9px}
+  .seq-flow-node{padding:12px;min-height:124px}
+  .seq-flow-node-name{font-size:19px}.seq-flow-facts{font-size:16px}
+  .seq-flow-connector span{font-size:15px}
+}
 .seq-mas-features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .seq-mas-second-title{font-size:26px;margin-top:27px;margin-bottom:8px}
 .seq-mas-characters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
