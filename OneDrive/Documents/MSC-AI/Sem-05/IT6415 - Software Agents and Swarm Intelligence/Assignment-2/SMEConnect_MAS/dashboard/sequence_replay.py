@@ -347,6 +347,8 @@ function updateFitButton(){
 }
 function renderOverview(){
  overview.replaceChildren();
+ // Default 18-event example is 3 × 6, but real scenarios can have more/fewer.
+ overview.style.gridTemplateRows="repeat("+Math.ceil(ev.length/3)+",minmax(0,1fr))";
  ev.forEach((item,j)=>{
    const card=document.createElement("button");
    card.type="button";
