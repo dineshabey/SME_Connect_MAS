@@ -290,3 +290,11 @@ The **🔀 Sequence Replay** viewer now includes **⛶ Full Screen**, **⊞ Fit 
 **Browser compatibility:** Streamlit embeds the sequence in a sandboxed iframe. Some browser/Streamlit builds block Fullscreen API permission from that iframe. The app therefore provides **⬇ Download Standalone Full-Screen Replay (HTML)** under the viewer. Download and open the file in Chrome/Edge, then use its Full Screen button (or F11 for browser fullscreen). The file contains the same already-recorded synthetic events and requires no Python runtime to replay. Bootstrap CSS is optional; the embedded viewer contains local fallback styles.
 
 For projector use, Fit Entire Sequence shows all events at once, but many event labels may be small. Switch to Follow Current Event for readable event-by-event explanations.
+
+#### Readable Full-Screen Overview — replacing microscopic fit scaling
+
+The Sequence Replay's **⛶ Full Screen** now opens a readable **three-column chronological storyboard** instead of scaling an 18-event tall SVG down to a few pixels. All recorded messages and decisions are displayed as numbered cards, read from left to right then top to bottom. Each card identifies the actual sender/recipient where applicable, and the true recorded action/price; decisions use a diamond and are clearly distinguished from validated messages. The currently replayed event is highlighted. Select any card to jump directly to that event.
+
+The **◉ Detailed Sequence** button returns to the original tall animated sequence-diagram SVG with follow-scrolling. Clicking **⊞ Fit Entire Sequence** switches back to the full-history cards. The number of storyboard rows follows the actual number of recorded events. The fullscreen presentation favors readable labels at normal desktop/projector sizes; a large number of events may still make it necessary to choose Detailed Sequence for precise price or explanation inspection.
+
+No replay/display control changes simulation state or generates additional synthetic reservations.
