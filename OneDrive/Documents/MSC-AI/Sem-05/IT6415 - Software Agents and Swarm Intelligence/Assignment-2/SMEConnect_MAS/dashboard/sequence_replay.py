@@ -772,12 +772,14 @@ def _edit_seller_popup(seller_id: str):
     with st.form(f"seq_seller_form_{seller_id}"):
         minimum = st.number_input(
             "Minimum acceptable price (Rs.) · private decision rule",
-            min_value=100.0, max_value=230.0,
+            min_value=max(100.0, float(default.minimum_price) - 50.0),
+            max_value=min(230.0, float(default.minimum_price) + 100.0),
             value=float(saved.get("minimum_price", default.minimum_price)), step=5.0,
         )
         target = st.number_input(
             "Target selling price (Rs.) · private decision rule",
-            min_value=110.0, max_value=250.0,
+            min_value=max(110.0, float(default.target_price) - 50.0),
+            max_value=min(250.0, float(default.target_price) + 100.0),
             value=float(saved.get("target_price", default.target_price)), step=5.0,
         )
         stock = st.number_input(
@@ -915,7 +917,7 @@ def render_sequence_replay():
                 '<article class="seq-profile' + (' warn' if not stock_ok else '') + '">'
                 f'<h3>🏪 {escape(_agent_label(sid))}</h3>'
                 '<span class="status">' +
-                ('Insufficient advertised stock' if not stock_ok else 'Stock sufficient for request') +
+                ('Insufficient scenario stock' if not stock_ok else 'Stock sufficient for request') +
                 '</span>'
                 f'<p><strong>Current request:</strong> {int(quantity):,} packets</p>'
                 f'<p><strong>Opening offer received:</strong> Rs.{offer:,.2f}</p>'
