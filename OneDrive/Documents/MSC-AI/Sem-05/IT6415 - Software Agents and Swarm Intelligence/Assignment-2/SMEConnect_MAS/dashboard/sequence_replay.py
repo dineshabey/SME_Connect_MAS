@@ -17,6 +17,22 @@ from smeconnect.environment.marketplace import build_agents
 from smeconnect.environment.catalogue import public_listings
 
 
+AGENT_DISPLAY_NAMES = {
+    "R1": "Retailer Agent R1",
+    "R2": "Retailer Agent R2",
+    "S1": "Seller Agent S1",
+    "S2": "Seller Agent S2",
+    "D1": "Delivery Agent D1",
+    "C1": "Coordinator Agent C1",
+    "M1": "Market Agent M1",
+}
+
+
+def _agent_label(agent_id: str) -> str:
+    """Human-readable label; internal message and graph IDs stay unchanged."""
+    return AGENT_DISPLAY_NAMES.get(agent_id, agent_id)
+
+
 def _sequence_events(run: dict) -> list[dict]:
     """Reconcile real messages with decision log events, retaining provenance."""
     comp, coordination = run["competition"], run["coordination"]
@@ -111,6 +127,7 @@ def _sequence_html(events: list[dict], actors: list[str], summary: dict,
         raise ValueError("Events and actor lifelines are required.")
     payload = json.dumps({
         "events": events, "actors": actors, "summary": summary, "speed": speed,
+        "actor_labels": {agent_id: _agent_label(agent_id) for agent_id in actors},
     }, ensure_ascii=False).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
     page = r'''<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
@@ -188,6 +205,7 @@ background:linear-gradient(110deg,#174f4d,#173c52)}
 <script>
 const model=__DATA__;
 const ev=model.events,actors=model.actors;
+const actorLabel=id=>model.actor_labels[id]||id;
 // Streamlit's HTML iframe has a fixed fallback height. Report measured content
 // size so its parent can expand the frame when supported by the runtime.
 let lastHeight=0;
@@ -232,9 +250,9 @@ function draw(){
  append(activeMarker,"path",{d:"M0,0 L10,5 L0,10 Z",fill:"#94fff0"});
  actors.forEach((agent,j)=>{
    const cx=x(j);
-   append(svg,"rect",{x:cx-91,y:20,width:182,height:61,rx:12,fill:"#24526c",stroke:"#6db3cb","stroke-width":1.5});
-   append(svg,"text",{x:cx,y:58,"font-size":22,"font-weight":750,"text-anchor":"middle",fill:"#fff"},agent);
-   append(svg,"line",{x1:cx,y1:82,x2:cx,y2:H-28,stroke:"#567d96","stroke-dasharray":"7 7","stroke-width":1.5});
+   append(svg,"rect",{x:cx-113,y:20,width:226,height:68,rx:12,fill:"#24526c",stroke:"#6db3cb","stroke-width":1.5});
+   append(svg,"text",{x:cx,y:61,"font-size":21,"font-weight":750,"text-anchor":"middle",fill:"#fff"},actorLabel(agent));
+   append(svg,"line",{x1:cx,y1:89,x2:cx,y2:H-28,stroke:"#567d96","stroke-dasharray":"7 7","stroke-width":1.5});
  });
  ev.forEach((item,j)=>{
   if(j>index)return;
@@ -270,8 +288,8 @@ function show(){
  document.getElementById("counter").textContent=`Event ${index+1} of ${ev.length}`;
  document.getElementById("title").textContent=`${item.phase} · ${item.action}`;
  document.getElementById("message").textContent=item.kind==="message"
-   ? `${item.sender} → ${item.receiver}${item.price!==undefined?" · Rs."+Number(item.price).toFixed(2):""}`
-   : `${item.sender} performed an internal decision`;
+   ? `${actorLabel(item.sender)} → ${actorLabel(item.receiver)}${item.price!==undefined?" · Rs."+Number(item.price).toFixed(2):""}`
+   : `${actorLabel(item.sender)} performed an internal decision`;
  document.getElementById("round").textContent=item.round?("Negotiation round "+item.round+" · Quantity "+item.quantity):"";
  document.getElementById("reason").textContent=item.description || "No rule explanation was recorded for this event.";
  const impact={
@@ -298,8 +316,8 @@ function show(){
    :impact[item.action]||"The next recorded event determines how the workflow continues.";
  document.getElementById("impact").textContent=label;
  document.getElementById("why-title").textContent=item.kind==="message"
-   ?"Why did "+item.sender+" send this message?"
-   :"Why did "+item.sender+" make this decision?";
+   ?"Why did "+actorLabel(item.sender)+" send this message?"
+   :"Why did "+actorLabel(item.sender)+" make this decision?";
  document.getElementById("provenance").textContent=item.kind==="message"
     ?"Validated message from recorded simulation trace.":"Internal event derived from a recorded decision log; not a transmitted message.";
  document.getElementById("previous").disabled=index===0;
@@ -314,7 +332,7 @@ function show(){
        ["Delivery quote",s.delivery],["Reserved total",s.total]]){
       const box=document.createElement("div");box.className="stat";
       const label=document.createElement("span");label.textContent=name;
-      const value=document.createElement("b");value.textContent=String(val);
+      const value=document.createElement("b");value.textContent=String(name==="Selected supplier"?actorLabel(val):val);
       box.append(label,value);container.appendChild(box);
    }
    final.appendChild(container);
@@ -393,10 +411,10 @@ def render_sequence_replay():
     # These widgets are deliberately OUTSIDE st.form: every change reruns this
     # preview immediately. Only the explicit Run button calls _run_session().
     a, b, c = st.columns(3)
-    retailer_id = a.selectbox("Retailer", ["R1", "R2"], key="seq_retailer", on_change=_sequence_preview_changed)
+    retailer_id = a.selectbox("Retailer", ["R1", "R2"], key="seq_retailer", format_func=_agent_label, on_change=_sequence_preview_changed)
     seller_ids = b.multiselect(
         "Competing sellers", ["S1", "S2"], default=["S1", "S2"],
-        key="seq_sellers", on_change=_sequence_preview_changed,
+        key="seq_sellers", format_func=_agent_label, on_change=_sequence_preview_changed,
     )
     quantity = c.number_input(
         "Quantity (packets)", min_value=1, max_value=300,
@@ -454,7 +472,7 @@ def render_sequence_replay():
     profiles.append(
         '<article class="seq-profile buyer' +
         (' warn' if not quantity_ok else '') + '">'
-        f'<h3>🛒 Retailer {escape(retailer_id)}</h3>'
+        f'<h3>🛒 {escape(_agent_label(retailer_id))}</h3>'
         '<span class="status">' +
         ('Quantity exceeds demand' if not quantity_ok else 'Ready to evaluate') +
         '</span>'
@@ -472,7 +490,7 @@ def render_sequence_replay():
         stock_ok = int(quantity) <= listing.advertised_stock
         profiles.append(
             '<article class="seq-profile' + (' warn' if not stock_ok else '') + '">'
-            f'<h3>🏪 Seller {escape(sid)}</h3>'
+            f'<h3>🏪 {escape(_agent_label(sid))}</h3>'
             '<span class="status">' +
             ('Insufficient advertised stock' if not stock_ok else 'Stock sufficient for request') +
             '</span>'
