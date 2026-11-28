@@ -783,3 +783,38 @@ def test_sequence_policy_notes_are_large_readable_green_explanation_panels():
         assert marker in source
     assert "Private demo policy: minimum" not in source
     assert "Agent baseline · Demand" not in source
+
+
+def test_sequence_final_decision_has_prominent_readable_status_card():
+    from dashboard.sequence_replay import _final_decision_html
+    from dashboard.workflow_simulator import _run_session
+
+    successful = _run_session("R1", ["S1", "S2"], 200, 150, 150, 5, 200)
+    html = _final_decision_html(successful)
+    assert "FINAL MULTI-AGENT DECISION" in html
+    assert "Seller Agent S2" in html
+    assert "RESERVED_SIMULATED" in html
+    assert "SIMULATED ORDER RESERVED" in html
+    assert "200 packets" in html
+    assert "Rs.31,000.00" in html
+    assert "Synthetic simulation only" in html
+    assert 'class="seq-result-card success"' in html
+
+    declined = _run_session("R1", ["S1"], 200, 100, 100, 2, 200)
+    failure_html = _final_decision_html(declined)
+    assert 'class="seq-result-card attention"' in failure_html
+    assert "No supplier selected" in failure_html
+    assert "Not reserved" in failure_html
+    assert "SIMULATED ORDER RESERVED" not in failure_html
+
+
+def test_sequence_final_decision_card_is_responsive_and_not_buried_in_expander():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    assert "st.markdown(_final_decision_html(result), unsafe_allow_html=True)" in source
+    assert ".seq-result-card{" in source
+    assert ".seq-result-grid{" in source
+    assert "@media(max-width:600px)" in source
+    assert source.index("st.markdown(_final_decision_html(result)") < source.index(
+        'with st.expander("✅ Seller policy verification'
+    )
