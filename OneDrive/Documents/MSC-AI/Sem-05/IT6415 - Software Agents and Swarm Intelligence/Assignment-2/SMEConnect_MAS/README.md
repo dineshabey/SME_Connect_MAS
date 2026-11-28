@@ -330,3 +330,15 @@ Agent private prices appear only in the **viva configuration preview**, explicit
 Demonstration: baseline R1 + S1/S2, 200 packets, Rs.150 offer selects S2 at the normal synthetic assumptions. Change S2 minimum price to Rs.175, target Rs.185, and stock to 90 using its popup. The next run should reject S2's 200-packet request and select S1 if its negotiated agreement remains feasible. The associated simulated ledger must start from S2 stock 90, rather than original 300.
 
 The implementation extends the existing immutable `MarketSnapshot` into `run_supplier_competition()` and `ReservationLedger.from_marketplace()` through `_run_session()`. No new database, dependency, real payment, stock mutation, or external seller change is introduced.
+
+#### End-to-end verification of edited seller values (Viva)
+
+Editing S1/S2 price or stock in the Sequence Replay popup changes a fresh immutable `MarketSnapshot` for the **next Run**, not merely the UI cards. The selected snapshot is provided to `_run_session(..., market_state=...)`, which (1) invokes seller and retailer LangGraph negotiations with the changed seller minimum/target/stock, (2) computes retailer-owned supplier selection from those recorded agreements, (3) initializes the reservation ledger using the **same seller stock**, and (4) runs coordination and delivery reservation on those results. Playback is a read-only trace.
+
+Below the animation an expanded **Seller policy verification — actual values used in this run** panel now independently checks the actual seller objects recorded in `competition["negotiations"]` against the ledger's initial stock and the final allocated stock. It reports minimum/target prices, starting stock, actual agreement/rejection, winning seller and reserved packets. On the **second Run**, it adds a genuine previous-run versus current-run comparison for sellers present in both runs. The sequence header also briefly lists each seller's actual effective policy used on that run.
+
+Changing an editor value without pressing Run displays **Scenario or Seller Agent policy changed — rerun required** to avoid presenting stale data as a new outcome. All private seller constraints in the verification panel are restricted to the human-facing viva evidence view, **not inserted into buyer-facing agent messages or the public catalogue**. Comparison is descriptive; if quantity, buyer or other scenario settings also change, outcomes should not be attributed solely to seller prices.
+
+Run the full suite with `python -m pytest -q` and specifically review:
+`python -m pytest tests/test_dashboard_navigation.py -k "seller_popup or seller_price_changes or seller_policy_evidence or seller_evidence" -v`.
+The two-seller test checks that raising both minima above the initial offer results in no agreement and no stock mutation; the one-seller price change case checks a change in supplier selection, real negotiated reservation and corresponding stock allocations.
