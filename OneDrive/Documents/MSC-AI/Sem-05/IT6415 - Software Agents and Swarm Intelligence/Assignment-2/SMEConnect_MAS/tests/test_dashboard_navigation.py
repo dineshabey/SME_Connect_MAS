@@ -442,3 +442,23 @@ def test_sequence_replay_uses_readable_agent_role_labels_without_changing_ids():
     assert '"R1": "Retailer Agent R1"' in html
     assert '"S1": "Seller Agent S1"' in html
     assert '"sender": "R1"' in html
+
+
+def test_sequence_fullscreen_and_fit_controls_are_real_and_replay_only():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    for required in (
+        'id="fullscreen"', 'id="fit"', '⛶ Full Screen',
+        'Fit Entire Sequence', 'shell.requestFullscreen()',
+        'document.exitFullscreen()', 'document.addEventListener("fullscreenchange"',
+        'fitAll=true', 'if(fitAll){', 'svg.setAttribute("preserveAspectRatio"',
+        'height=1600, scrolling=True', 'st.download_button(',
+        'SMEConnect_Sequence_Replay.html',
+    ):
+        assert required in source
+    # Playback is entirely client-side: a fullscreen/fit click never runs a
+    # new seller negotiation, delivery coordination or reservation ledger.
+    iframe = source.split("page = r'''", 1)[1].split("'''", 1)[0]
+    assert "_run_session(" not in iframe
+    assert "run_delivery_coordination(" not in iframe
+    assert "ReservationLedger" not in iframe
