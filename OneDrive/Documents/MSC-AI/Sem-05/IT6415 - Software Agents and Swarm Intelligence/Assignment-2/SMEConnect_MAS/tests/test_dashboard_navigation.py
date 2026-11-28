@@ -597,3 +597,71 @@ def test_sequence_desktop_only_message_pane_scrolls_and_header_remains_visible()
         'components.html(sequence_document, height=900, scrolling=True)',
     ):
         assert marker in src
+
+
+def test_seller_popup_is_real_dialog_and_uses_isolated_decision_parameters():
+    source = (PROJECT / "dashboard" / "sequence_replay.py").read_text(encoding="utf-8")
+    ast.parse(source)
+    for expected in (
+        '@st.dialog("⚙ Configure Seller Agent", width="large")',
+        'def _edit_seller_popup(seller_id: str):',
+        '"Minimum acceptable price (Rs.) · private decision rule"',
+        '"Target selling price (Rs.) · private decision rule"',
+        '"Available stock (packets)"',
+        'st.session_state["seq_seller_overrides"] = current',
+        'market_state=market_state,',
+        'scenario_sellers[sid]',
+        '_edit_seller_popup(sid)',
+        'st.button(',
+    ):
+        assert expected in source
+
+
+def test_seller_popup_changes_negotiation_policy_and_reservation_stock():
+    from dashboard.sequence_replay import _seller_market_snapshot
+    from dashboard.workflow_simulator import _run_session
+    from smeconnect.environment.marketplace import build_agents
+
+    original = {a.agent_id: a for a in build_agents() if a.role == "seller"}
+    snapshot = _seller_market_snapshot({
+        "S2": {
+            "minimum_price": 175.0,
+            "target_price": 185.0,
+            "available_stock": 90,
+        }
+    })
+    altered = {a.agent_id: a for a in build_agents(snapshot) if a.role == "seller"}
+    assert altered["S2"].minimum_price == 175.0
+    assert altered["S2"].target_price == 185.0
+    assert altered["S2"].available_stock == 90
+    # The default registered seller is never mutated by the what-if editor.
+    assert original["S2"].minimum_price == 140.0
+    assert original["S2"].available_stock == 300
+    baseline = _run_session("R1", ["S1", "S2"], 200, 150.0, 150.0, 5, 200.0)
+    customized = _run_session(
+        "R1", ["S1", "S2"], 200, 150.0, 150.0, 5, 200.0,
+        market_state=snapshot,
+    )
+    assert baseline["competition"]["selection"]["selected_seller_id"] == "S2"
+    assert customized["competition"]["selection"]["selected_seller_id"] == "S1"
+    assert customized["before"]["seller_stock"]["S2"] == 90
+    assert customized["after"]["seller_stock"]["S2"] == 90
+    assert customized["after"]["seller_stock"]["S1"] == 300
+
+
+def test_seller_popup_rejects_invalid_internal_policy_values():
+    import pytest
+    from dashboard.sequence_replay import _seller_market_snapshot
+
+    with pytest.raises(ValueError):
+        _seller_market_snapshot({"UNKNOWN": {
+            "minimum_price": 150, "target_price": 170, "available_stock": 100
+        }})
+    with pytest.raises(ValueError):
+        _seller_market_snapshot({"S1": {
+            "minimum_price": 180, "target_price": 160, "available_stock": 500
+        }})
+    with pytest.raises(ValueError):
+        _seller_market_snapshot({"S1": {
+            "minimum_price": 150, "target_price": 170, "available_stock": -1
+        }})
