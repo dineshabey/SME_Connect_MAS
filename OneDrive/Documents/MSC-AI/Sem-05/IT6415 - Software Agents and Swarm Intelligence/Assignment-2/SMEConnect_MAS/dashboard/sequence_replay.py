@@ -667,6 +667,9 @@ def render_sequence_replay():
         presenting = False
         st.session_state["seq_presenting"] = False
     if not presenting:
+        if st.session_state.pop("seq_restore_inputs", False):
+            for key, value in st.session_state.get("seq_saved_controls", {}).items():
+                st.session_state[key] = value
         st.markdown("### Configure and run a real sequence")
         st.caption(
             "A sequential synthetic simulation runs once. Only the recorded messages and "
@@ -808,6 +811,16 @@ def render_sequence_replay():
                 run_result["sequence_speed"] = speed
                 st.session_state["sequence_run"] = run_result
                 st.session_state["seq_last_run_revision"] = st.session_state.get("seq_preview_revision", 0)
+                st.session_state["seq_saved_controls"] = {
+                    "seq_retailer": retailer_id,
+                    "seq_sellers": list(seller_ids),
+                    "seq_quantity": int(quantity),
+                    "seq_offer": float(offer),
+                    "seq_target": float(target),
+                    "seq_rounds": int(rounds),
+                    "seq_resale": float(resale),
+                    "seq_speed": speed,
+                }
                 st.session_state["seq_presenting"] = True
                 st.rerun()
             except (ValueError, RuntimeError, KeyError) as exc:
@@ -834,6 +847,7 @@ def render_sequence_replay():
                 use_container_width=True,
             ):
                 st.session_state["seq_presenting"] = False
+                st.session_state["seq_restore_inputs"] = True
                 st.rerun()
     result = st.session_state.get("sequence_run")
     if result is None:
